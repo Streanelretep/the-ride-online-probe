@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: the-ride-online-probe
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: PROBE_ACCESS_PASSWORD
+        generateValue: true
+      - key: PROBE_HOST_SEED
+        generateValue: true
