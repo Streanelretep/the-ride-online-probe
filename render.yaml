@@ -12,5 +12,7 @@ services:
         value: "24"
       - key: PROBE_ACCESS_PASSWORD
         generateValue: true
-      - key: PROBE_HOST_SEED
-        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_ENCRYPTION_KEY
+        sync: false

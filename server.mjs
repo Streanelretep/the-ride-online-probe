@@ -4,12 +4,12 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// scripts/online-probe.ts
-import { createHash as createHash2 } from "node:crypto";
-
-// src/server/online-probe-http.ts
+// src/server/online-connect-http.ts
 import { createServer } from "node:http";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+
+// src/contracts/chatgpt.ts
+var approvedChatGptOrigin = "https://the-ride-online-probe.onrender.com";
 
 // node_modules/jose/dist/webapi/lib/buffer_utils.js
 var encoder = new TextEncoder();
@@ -223,51 +223,51 @@ function validateB64(protectedHeader, extensions) {
 }
 
 // node_modules/jose/dist/webapi/lib/key.js
-var tag = (key) => key[Symbol.toStringTag];
-var jwkMatchesOp = (entry, key, usage) => {
+var tag = (key3) => key3[Symbol.toStringTag];
+var jwkMatchesOp = (entry, key3, usage) => {
   const { alg } = entry;
-  if (key.use !== void 0) {
+  if (key3.use !== void 0) {
     const expected = usage === "sign" || usage === "verify" ? "sig" : "enc";
-    if (key.use !== expected)
+    if (key3.use !== expected)
       throw new TypeError(`Invalid key for this operation, its "use" must be "${expected}" when present`);
   }
-  if (key.alg !== void 0 && key.alg !== alg)
+  if (key3.alg !== void 0 && key3.alg !== alg)
     throw new TypeError(`Invalid key for this operation, its "alg" must be "${alg}" when present`);
-  if (Array.isArray(key.key_ops)) {
+  if (Array.isArray(key3.key_ops)) {
     const expectedKeyOp = usage === "encrypt" || usage === "decrypt" ? entry.ops?.[usage === "encrypt" ? 0 : 1] : usage;
-    if (expectedKeyOp && !key.key_ops.includes(expectedKeyOp))
+    if (expectedKeyOp && !key3.key_ops.includes(expectedKeyOp))
       throw new TypeError(`Invalid key for this operation, its "key_ops" must include "${expectedKeyOp}" when present`);
   }
 };
-async function prepareKey(entry, key, usage) {
-  const { alg, secret } = entry, requiresPrivateKey = usage === "decrypt" || usage === "sign";
-  if (secret && key instanceof Uint8Array)
-    return key;
+async function prepareKey(entry, key3, usage) {
+  const { alg, secret: secret2 } = entry, requiresPrivateKey = usage === "decrypt" || usage === "sign";
+  if (secret2 && key3 instanceof Uint8Array)
+    return key3;
   let normalized, keyObject;
-  if (isObject(key)) {
-    if (normalized = normalizeJwk(key), typeof normalized.kty != "string")
-      throw invalidKeyType(alg, key, secret);
-    if (!(secret ? normalized.kty === "oct" && typeof normalized.k == "string" : normalized.kty !== "oct" && (requiresPrivateKey ? normalized.kty === "AKP" && typeof normalized.priv == "string" || typeof normalized.d == "string" : normalized.d === void 0 && normalized.priv === void 0)))
-      throw new TypeError(secret ? 'JSON Web Key for symmetric algorithms must have JWK "kty" (Key Type) equal to "oct" and the JWK "k" (Key Value) present' : `JSON Web Key for this operation must be a ${requiresPrivateKey ? "private" : "public"} JWK`);
+  if (isObject(key3)) {
+    if (normalized = normalizeJwk(key3), typeof normalized.kty != "string")
+      throw invalidKeyType(alg, key3, secret2);
+    if (!(secret2 ? normalized.kty === "oct" && typeof normalized.k == "string" : normalized.kty !== "oct" && (requiresPrivateKey ? normalized.kty === "AKP" && typeof normalized.priv == "string" || typeof normalized.d == "string" : normalized.d === void 0 && normalized.priv === void 0)))
+      throw new TypeError(secret2 ? 'JSON Web Key for symmetric algorithms must have JWK "kty" (Key Type) equal to "oct" and the JWK "k" (Key Value) present' : `JSON Web Key for this operation must be a ${requiresPrivateKey ? "private" : "public"} JWK`);
     if (jwkMatchesOp(entry, normalized, usage), normalized.kty === "oct")
       return decode(normalized.k);
-    if (!Object.isFrozen(key)) {
-      const { key_ops } = key;
-      Array.isArray(key_ops) && Object.freeze(key_ops), Object.freeze(key);
+    if (!Object.isFrozen(key3)) {
+      const { key_ops } = key3;
+      Array.isArray(key_ops) && Object.freeze(key_ops), Object.freeze(key3);
     }
   } else {
-    if (!isKeyLike(key))
-      throw invalidKeyType(alg, key, secret);
-    const expectedType = secret ? "secret" : requiresPrivateKey ? "private" : "public";
-    if (key.type !== expectedType && (secret || ["secret", "public", "private"].includes(key.type)))
-      throw new TypeError(`${tag(key)} instances must be of type "${expectedType}" for the ${alg} algorithm`);
-    if (isCryptoKey(key))
-      return key;
-    if (keyObject = key, keyObject.type === "secret")
+    if (!isKeyLike(key3))
+      throw invalidKeyType(alg, key3, secret2);
+    const expectedType = secret2 ? "secret" : requiresPrivateKey ? "private" : "public";
+    if (key3.type !== expectedType && (secret2 || ["secret", "public", "private"].includes(key3.type)))
+      throw new TypeError(`${tag(key3)} instances must be of type "${expectedType}" for the ${alg} algorithm`);
+    if (isCryptoKey(key3))
+      return key3;
+    if (keyObject = key3, keyObject.type === "secret")
       return keyObject.export();
   }
   cache ||= /* @__PURE__ */ new WeakMap();
-  const cacheKey = key;
+  const cacheKey = key3;
   let cached2 = cache.get(cacheKey);
   if (cached2?.[alg])
     return cached2[alg];
@@ -284,17 +284,17 @@ var nist = {
   secp384r1: "P-384",
   secp521r1: "P-521"
 };
-var isCryptoKey = (key) => {
-  if (key?.[Symbol.toStringTag] === "CryptoKey")
+var isCryptoKey = (key3) => {
+  if (key3?.[Symbol.toStringTag] === "CryptoKey")
     return true;
   try {
-    return key instanceof CryptoKey;
+    return key3 instanceof CryptoKey;
   } catch {
     return false;
   }
 };
-var isKeyObject = (key) => key?.[Symbol.toStringTag] === "KeyObject";
-var isKeyLike = (key) => isCryptoKey(key) || isKeyObject(key);
+var isKeyObject = (key3) => key3?.[Symbol.toStringTag] === "KeyObject";
+var isKeyLike = (key3) => isCryptoKey(key3) || isKeyObject(key3);
 function message(msg, actual, ...types) {
   if (types.length > 2) {
     const last = types.pop();
@@ -302,22 +302,22 @@ function message(msg, actual, ...types) {
   } else types.length === 2 ? msg += `one of type ${types[0]} or ${types[1]}.` : msg += `of type ${types[0]}.`;
   return actual == null ? msg += ` Received ${actual}` : typeof actual == "function" && actual.name ? msg += ` Received function ${actual.name}` : typeof actual == "object" && actual != null && actual.constructor?.name && (msg += ` Received an instance of ${actual.constructor.name}`), msg;
 }
-function invalidKeyType(alg, actual, secret) {
+function invalidKeyType(alg, actual, secret2) {
   const types = ["CryptoKey", "KeyObject", "JSON Web Key"];
-  return secret && types.push("Uint8Array"), new TypeError(message(`Key for the ${alg} algorithm must be `, actual, ...types));
+  return secret2 && types.push("Uint8Array"), new TypeError(message(`Key for the ${alg} algorithm must be `, actual, ...types));
 }
 var unusable = (name, prop = "algorithm.name") => new TypeError(`CryptoKey does not support this operation, its ${prop} must be ${name}`);
-function checkUsage(key, usage) {
-  if (usage && !key.usages.includes(usage))
+function checkUsage(key3, usage) {
+  if (usage && !key3.usages.includes(usage))
     throw new TypeError(`CryptoKey does not support this operation, its usages must include ${usage}.`);
 }
-function checkModulusLength(alg, key) {
-  const { modulusLength } = key.algorithm;
+function checkModulusLength(alg, key3) {
+  const { modulusLength } = key3.algorithm;
   if (typeof modulusLength != "number" || modulusLength < 2048)
     throw new TypeError(`${alg} requires key modulusLength to be 2048 bits or larger`);
 }
-function checkCryptoKey(key, expected, usage) {
-  const algorithm = key.algorithm;
+function checkCryptoKey(key3, expected, usage) {
+  const algorithm = key3.algorithm;
   if (algorithm.name !== expected.name)
     throw unusable(expected.name);
   if (expected.hash && algorithm.hash?.name !== expected.hash)
@@ -326,7 +326,7 @@ function checkCryptoKey(key, expected, usage) {
     throw unusable(expected.namedCurve, "algorithm.namedCurve");
   if (expected.length !== void 0 && algorithm.length !== expected.length)
     throw unusable(expected.length, "algorithm.length");
-  checkUsage(key, usage);
+  checkUsage(key3, usage);
 }
 function snapshotJwk(jwk) {
   return { __proto__: null, ...jwk };
@@ -349,8 +349,8 @@ async function jwkToKey(entry, jwk, extractable) {
   const algorithm = entry.resolve?.({ kty: jwk.kty, crv: jwk.crv }) ?? entry.subtle, isPrivate = !!(jwk.d || jwk.priv), keyData = { ...jwk, ext: extractable ?? jwk.ext };
   return keyData.kty !== "AKP" && delete keyData.alg, delete keyData.use, crypto.subtle.importKey("jwk", keyData, algorithm, keyData.ext ?? !isPrivate, jwk.key_ops ?? entry.usages[isPrivate ? 1 : 0]);
 }
-async function rawKey(key, expected, usage, extractable = false) {
-  return key instanceof Uint8Array && (key = await crypto.subtle.importKey("raw", key, expected, extractable, [usage])), checkCryptoKey(key, expected, usage), key;
+async function rawKey(key3, expected, usage, extractable = false) {
+  return key3 instanceof Uint8Array && (key3 = await crypto.subtle.importKey("raw", key3, expected, extractable, [usage])), checkCryptoKey(key3, expected, usage), key3;
 }
 
 // node_modules/jose/dist/webapi/lib/key_descriptor.js
@@ -447,7 +447,7 @@ function encodeCompactUnencodedPayload(payload) {
     });
   }
 }
-async function verifySignature(jws, shared, key, encodeUnencodedPayload, parsedProtected) {
+async function verifySignature(jws, shared, key3, encodeUnencodedPayload, parsedProtected) {
   const { protected: encodedProtectedHeader, header, payload: inputPayload } = jws, protectedHeader = parsedProtected ?? parseProtectedHeader(encodedProtectedHeader);
   if (!isDisjoint(protectedHeader, header))
     throw new JWSInvalid("JWS Protected and JWS Unprotected Header Parameter names must be disjoint");
@@ -463,8 +463,8 @@ async function verifySignature(jws, shared, key, encodeUnencodedPayload, parsedP
     throw new JWSInvalid("JWS Payload must be a string or an Uint8Array instance");
   const signingPayload = b64 || typeof inputPayload != "string" ? inputPayload : encodeUnencodedPayload(inputPayload);
   let resolvedKey = false;
-  typeof key == "function" && (key = await key(protectedHeader, jws), resolvedKey = true);
-  const entry = jwsAlgorithm(alg), signingInput = concat(encodedProtectedHeader !== void 0 ? encode(encodedProtectedHeader) : new Uint8Array(), encode("."), typeof signingPayload == "string" ? shared[2] ??= encodeAsciiMember(signingPayload, "payload", JWSInvalid) : signingPayload), signature = decodeBase64url(jws.signature, "signature", JWSInvalid), verificationKey = await prepareKey(entry, key, "verify"), cryptoKey = await rawKey(verificationKey, entry.subtle, "verify");
+  typeof key3 == "function" && (key3 = await key3(protectedHeader, jws), resolvedKey = true);
+  const entry = jwsAlgorithm(alg), signingInput = concat(encodedProtectedHeader !== void 0 ? encode(encodedProtectedHeader) : new Uint8Array(), encode("."), typeof signingPayload == "string" ? shared[2] ??= encodeAsciiMember(signingPayload, "payload", JWSInvalid) : signingPayload), signature = decodeBase64url(jws.signature, "signature", JWSInvalid), verificationKey = await prepareKey(entry, key3, "verify"), cryptoKey = await rawKey(verificationKey, entry.subtle, "verify");
   entry.minRsaBits && checkModulusLength(entry.alg, cryptoKey);
   let verified = false;
   try {
@@ -477,13 +477,13 @@ async function verifySignature(jws, shared, key, encodeUnencodedPayload, parsedP
   const result = { payload: typeof signingPayload == "string" ? decodeBase64url(signingPayload, "payload", JWSInvalid) : signingPayload };
   return encodedProtectedHeader !== void 0 && (result.protectedHeader = protectedHeader), header !== void 0 && (result.unprotectedHeader = header), resolvedKey ? [{ ...result, key: verificationKey }, b64] : [result, b64];
 }
-async function verifyCompact(jws, shared, key) {
+async function verifyCompact(jws, shared, key3) {
   if (jws instanceof Uint8Array && (jws = decoder.decode(jws)), typeof jws != "string")
     throw new JWSInvalid("Compact JWS must be a string or Uint8Array");
   const { 0: protectedHeader, 1: payload, 2: signature, length } = jws.split(".");
   if (length !== 3)
     throw new JWSInvalid("Invalid Compact JWS");
-  return verifySignature({ payload, protected: protectedHeader, signature }, shared, key, encodeCompactUnencodedPayload);
+  return verifySignature({ payload, protected: protectedHeader, signature }, shared, key3, encodeCompactUnencodedPayload);
 }
 
 // node_modules/jose/dist/webapi/lib/jwt_claims_set.js
@@ -574,8 +574,8 @@ function validateClaimsSet(protectedHeader, claimsSetBytes, options = {}) {
 }
 
 // node_modules/jose/dist/webapi/jwt/verify.js
-async function jwtVerify(jwt2, key, options) {
-  const [verified, b64] = await verifyCompact(jwt2, prepareVerify(options), key);
+async function jwtVerify(jwt2, key3, options) {
+  const [verified, b64] = await verifyCompact(jwt2, prepareVerify(options), key3);
   if (!b64)
     throw new JWTInvalid("JWTs MUST NOT use unencoded payload");
   const payload = validateClaimsSet(verified.protectedHeader, verified.payload, options);
@@ -590,10 +590,10 @@ function isUsableJWK(jwk, entry, alg, kid) {
 async function importWithAlgCache(cache2, jwk, entry) {
   const cached2 = cache2.get(jwk) || cache2.set(jwk, {}).get(jwk), { alg } = entry;
   if (cached2[alg] === void 0) {
-    const pending = jwkToKey(entry, jwk, true).then((key) => {
-      if (key.type !== "public")
+    const pending = jwkToKey(entry, jwk, true).then((key3) => {
+      if (key3.type !== "public")
         throw new JWKSInvalid("JSON Web Key Set members must be public keys");
-      return cached2[alg] = key, key;
+      return cached2[alg] = key3, key3;
     }).catch((error62) => {
       throw cached2[alg] === pending && delete cached2[alg], error62;
     });
@@ -1455,9 +1455,9 @@ function floatSafeRemainder(val, step) {
   return ratio - roundedRatio;
 }
 var EVALUATING = /* @__PURE__ */ Symbol("evaluating");
-function defineLazy(object2, key, getter) {
+function defineLazy(object2, key3, getter) {
   let value = void 0;
-  Object.defineProperty(object2, key, {
+  Object.defineProperty(object2, key3, {
     get() {
       if (value === EVALUATING) {
         return void 0;
@@ -1469,7 +1469,7 @@ function defineLazy(object2, key, getter) {
       return value;
     },
     set(v) {
-      Object.defineProperty(object2, key, {
+      Object.defineProperty(object2, key3, {
         value: v
         // configurable: true,
       });
@@ -1495,47 +1495,47 @@ function rawShape(def) {
 function sourceShape(schema) {
   return rawShape(schema._zod.def) ?? schema._zod.def.shape;
 }
-function deferProp(target, key, getter) {
-  Object.defineProperty(target, key, {
+function deferProp(target, key3, getter) {
+  Object.defineProperty(target, key3, {
     get() {
       const value = getter();
-      assignProp(this, key, value);
+      assignProp(this, key3, value);
       return value;
     },
     enumerable: true,
     configurable: true
   });
 }
-function putProp(target, key, value) {
-  if (key in target)
-    assignProp(target, key, value);
+function putProp(target, key3, value) {
+  if (key3 in target)
+    assignProp(target, key3, value);
   else
-    target[key] = value;
+    target[key3] = value;
 }
 function mirrorShape(target, source, keys, wrap) {
   const raw = sourceShape(source);
-  for (const key of keys) {
-    const desc = Object.getOwnPropertyDescriptor(raw, key);
+  for (const key3 of keys) {
+    const desc = Object.getOwnPropertyDescriptor(raw, key3);
     if (!desc.enumerable)
       continue;
     if (desc.get) {
-      deferProp(target, key, () => {
-        const value = source._zod.def.shape[key];
-        return wrap ? wrap(value, key) : value;
+      deferProp(target, key3, () => {
+        const value = source._zod.def.shape[key3];
+        return wrap ? wrap(value, key3) : value;
       });
     } else
-      putProp(target, key, wrap ? wrap(desc.value, key) : desc.value);
+      putProp(target, key3, wrap ? wrap(desc.value, key3) : desc.value);
   }
 }
 function mirrorProps(target, source) {
-  for (const key of Reflect.ownKeys(source)) {
-    const desc = Object.getOwnPropertyDescriptor(source, key);
+  for (const key3 of Reflect.ownKeys(source)) {
+    const desc = Object.getOwnPropertyDescriptor(source, key3);
     if (!desc.enumerable)
       continue;
     if (desc.get)
-      deferProp(target, key, () => source[key]);
+      deferProp(target, key3, () => source[key3]);
     else
-      putProp(target, key, desc.value);
+      putProp(target, key3, desc.value);
   }
 }
 function mergeDefs(...defs) {
@@ -1552,11 +1552,11 @@ function cloneDef(schema) {
 function getElementAtPath(obj, path) {
   if (!path)
     return obj;
-  return path.reduce((acc, key) => acc?.[key], obj);
+  return path.reduce((acc, key3) => acc?.[key3], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
-  const promises = keys.map((key) => promisesObj[key]);
+  const promises = keys.map((key3) => promisesObj[key3]);
   return Promise.all(promises).then((results) => {
     const resolvedObj = {};
     for (let i = 0; i < keys.length; i++) {
@@ -1628,8 +1628,8 @@ function shallowClone(o) {
 }
 function numKeys(data) {
   let keyCount = 0;
-  for (const key in data) {
-    if (Object.prototype.hasOwnProperty.call(data, key)) {
+  for (const key3 in data) {
+    if (Object.prototype.hasOwnProperty.call(data, key3)) {
       keyCount++;
     }
   }
@@ -1783,12 +1783,12 @@ function pick(schema, mask) {
 function maskedKeys(schema, mask) {
   const raw = sourceShape(schema);
   const keys = [];
-  for (const key of Reflect.ownKeys(mask)) {
-    if (!Object.getOwnPropertyDescriptor(raw, key)?.enumerable) {
-      throw new Error(`Unrecognized key: "${String(key)}"`);
+  for (const key3 of Reflect.ownKeys(mask)) {
+    if (!Object.getOwnPropertyDescriptor(raw, key3)?.enumerable) {
+      throw new Error(`Unrecognized key: "${String(key3)}"`);
     }
-    if (mask[key])
-      keys.push(key);
+    if (mask[key3])
+      keys.push(key3);
   }
   return keys;
 }
@@ -1801,7 +1801,7 @@ function omit(schema, mask) {
   }
   const omitted = new Set(maskedKeys(schema, mask));
   const newShape = {};
-  mirrorShape(newShape, schema, Reflect.ownKeys(sourceShape(schema)).filter((key) => !omitted.has(key)));
+  mirrorShape(newShape, schema, Reflect.ownKeys(sourceShape(schema)).filter((key3) => !omitted.has(key3)));
   return clone(schema, mergeDefs(currDef, { shape: newShape, checks: [] }));
 }
 function extend(schema, shape) {
@@ -1812,8 +1812,8 @@ function extend(schema, shape) {
   const hasChecks = checks && checks.length > 0;
   if (hasChecks) {
     const existingShape = sourceShape(schema);
-    for (const key of Reflect.ownKeys(shape)) {
-      if (Object.getOwnPropertyDescriptor(existingShape, key) !== void 0) {
+    for (const key3 of Reflect.ownKeys(shape)) {
+      if (Object.getOwnPropertyDescriptor(existingShape, key3) !== void 0) {
         throw new Error("Cannot overwrite keys on object schemas containing refinements. Use `.safeExtend()` instead.");
       }
     }
@@ -1860,15 +1860,15 @@ function partial(Class2, schema, mask, name = "partial") {
   }
   const selected = mask ? new Set(maskedKeys(schema, mask)) : void 0;
   const newShape = {};
-  mirrorShape(newShape, schema, Reflect.ownKeys(sourceShape(schema)), Class2 && ((value, key) => selected && !selected.has(key) ? value : new Class2({ type: "optional", innerType: value })));
+  mirrorShape(newShape, schema, Reflect.ownKeys(sourceShape(schema)), Class2 && ((value, key3) => selected && !selected.has(key3) ? value : new Class2({ type: "optional", innerType: value })));
   return clone(schema, mergeDefs(schema._zod.def, { shape: newShape, checks: [] }));
 }
 function required(Class2, schema, mask) {
   const selected = mask ? new Set(maskedKeys(schema, mask)) : void 0;
   const newShape = {};
-  mirrorShape(newShape, schema, Reflect.ownKeys(sourceShape(schema)), (value, key) => (
+  mirrorShape(newShape, schema, Reflect.ownKeys(sourceShape(schema)), (value, key3) => (
     // overwrite with non-optional
-    selected && !selected.has(key) ? value : new Class2({ type: "nonoptional", innerType: value })
+    selected && !selected.has(key3) ? value : new Class2({ type: "nonoptional", innerType: value })
   ));
   return clone(schema, mergeDefs(schema._zod.def, { shape: newShape }));
 }
@@ -2036,8 +2036,8 @@ function base64urlToUint8Array(base64url3) {
 function uint8ArrayToBase64url(bytes) {
   return uint8ArrayToBase64(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
-function hexToUint8Array(hex4) {
-  const cleanHex = hex4.replace(/^0x/, "");
+function hexToUint8Array(hex3) {
+  const cleanHex = hex3.replace(/^0x/, "");
   if (cleanHex.length % 2 !== 0) {
     throw new Error("Invalid hex string length");
   }
@@ -2055,46 +2055,46 @@ var Class = class {
   }
 };
 function members(proto, table2) {
-  for (const key in table2) {
-    const desc = Object.getOwnPropertyDescriptor(table2, key);
+  for (const key3 in table2) {
+    const desc = Object.getOwnPropertyDescriptor(table2, key3);
     if (desc.get)
-      Object.defineProperty(proto, key, { ...desc, enumerable: false });
+      Object.defineProperty(proto, key3, { ...desc, enumerable: false });
     else
-      defineBound(proto, key, desc.value);
+      defineBound(proto, key3, desc.value);
   }
 }
-function own(inst, key, value, enumerable = true) {
-  Object.defineProperty(inst, key, { configurable: true, writable: true, enumerable, value });
+function own(inst, key3, value, enumerable = true) {
+  Object.defineProperty(inst, key3, { configurable: true, writable: true, enumerable, value });
   return value;
 }
-function hide(inst, key, value) {
-  return own(inst, key, value, false);
+function hide(inst, key3, value) {
+  return own(inst, key3, value, false);
 }
 // @__NO_SIDE_EFFECTS__
 function derived(computes, table2) {
-  for (const key in computes) {
-    const compute = computes[key];
-    Object.defineProperty(table2, key, {
+  for (const key3 in computes) {
+    const compute = computes[key3];
+    Object.defineProperty(table2, key3, {
       configurable: true,
       enumerable: true,
       get() {
-        return own(this, key, compute(this));
+        return own(this, key3, compute(this));
       },
       set(value) {
-        own(this, key, value);
+        own(this, key3, value);
       }
     });
   }
   return table2;
 }
-function defineBound(proto, key, fn) {
-  Object.defineProperty(proto, key, {
+function defineBound(proto, key3, fn) {
+  Object.defineProperty(proto, key3, {
     configurable: true,
     get() {
-      return this == null ? fn : own(this, key, fn.bind(this));
+      return this == null ? fn : own(this, key3, fn.bind(this));
     },
     set(value) {
-      own(this, key, value);
+      own(this, key3, value);
     }
   });
 }
@@ -2111,53 +2111,53 @@ var breaker = {
     return void 0;
   }
 };
-function defineLazyInternal(inst, key, compute) {
+function defineLazyInternal(inst, key3, compute) {
   const proto = Object.getPrototypeOf(inst._zod);
-  if (key in proto && installing !== inst._zod) {
+  if (key3 in proto && installing !== inst._zod) {
     installing = void 0;
     return;
   }
   installing = inst._zod;
-  Object.defineProperty(proto, key, {
+  Object.defineProperty(proto, key3, {
     configurable: true,
     get() {
-      Object.defineProperty(this, key, breaker);
+      Object.defineProperty(this, key3, breaker);
       const outer = broke;
       broke = false;
       try {
         const value = compute(this);
         if (broke)
-          delete this[key];
+          delete this[key3];
         else
-          Object.defineProperty(this, key, { configurable: true, writable: true, value });
+          Object.defineProperty(this, key3, { configurable: true, writable: true, value });
         broke = broke || outer;
         return value;
       } catch (err) {
-        delete this[key];
+        delete this[key3];
         broke = broke || outer;
         throw err;
       }
     },
     set(value) {
-      Object.defineProperty(this, key, { configurable: true, writable: true, value });
+      Object.defineProperty(this, key3, { configurable: true, writable: true, value });
     }
   });
 }
-function installLazyProp(inst, key, make, enumerable) {
-  const proto = claim(inst, key);
+function installLazyProp(inst, key3, make, enumerable) {
+  const proto = claim(inst, key3);
   if (!proto)
     return;
-  Object.defineProperty(proto, key, {
+  Object.defineProperty(proto, key3, {
     configurable: true,
     get() {
       const desc = { configurable: true, writable: true, enumerable, value: void 0 };
-      Object.defineProperty(this, key, desc);
+      Object.defineProperty(this, key3, desc);
       desc.value = make(this);
-      Object.defineProperty(this, key, desc);
+      Object.defineProperty(this, key3, desc);
       return desc.value;
     },
     set(value) {
-      Object.defineProperty(this, key, { configurable: true, writable: true, enumerable, value });
+      Object.defineProperty(this, key3, { configurable: true, writable: true, enumerable, value });
     }
   });
 }
@@ -2334,15 +2334,15 @@ var $ZodError = $constructor("$ZodError", initializer);
 var $ZodRealError = $constructor("$ZodError", initializer, void 0, {
   Parent: Error
 });
-function node(obj, key, make) {
-  if (!Object.prototype.hasOwnProperty.call(obj, key)) {
-    if (key === "__proto__") {
-      Object.defineProperty(obj, key, { value: make(), writable: true, enumerable: true, configurable: true });
+function node(obj, key3, make) {
+  if (!Object.prototype.hasOwnProperty.call(obj, key3)) {
+    if (key3 === "__proto__") {
+      Object.defineProperty(obj, key3, { value: make(), writable: true, enumerable: true, configurable: true });
     } else {
-      obj[key] = make();
+      obj[key3] = make();
     }
   }
-  return obj[key];
+  return obj[key3];
 }
 function flattenError(error62, mapper = (issue2) => issue2.message) {
   const fieldErrors = {};
@@ -2836,13 +2836,13 @@ var numericOriginMap = {
 };
 var $ZodCheckLessThan = /* @__PURE__ */ $constructor("$ZodCheckLessThan", (inst, def) => {
   $ZodCheck.init(inst, def);
-  const origin2 = numericOriginMap[typeof def.value];
+  const origin = numericOriginMap[typeof def.value];
   inst._zod.check = (payload) => {
     if (def.inclusive ? payload.value <= def.value : payload.value < def.value) {
       return;
     }
     payload.issues.push({
-      origin: numericOriginMap[typeof payload.value] ?? origin2,
+      origin: numericOriginMap[typeof payload.value] ?? origin,
       code: "too_big",
       maximum: typeof def.value === "object" ? def.value.getTime() : def.value,
       input: payload.value,
@@ -2854,13 +2854,13 @@ var $ZodCheckLessThan = /* @__PURE__ */ $constructor("$ZodCheckLessThan", (inst,
 });
 var $ZodCheckGreaterThan = /* @__PURE__ */ $constructor("$ZodCheckGreaterThan", (inst, def) => {
   $ZodCheck.init(inst, def);
-  const origin2 = numericOriginMap[typeof def.value];
+  const origin = numericOriginMap[typeof def.value];
   inst._zod.check = (payload) => {
     if (def.inclusive ? payload.value >= def.value : payload.value > def.value) {
       return;
     }
     payload.issues.push({
-      origin: numericOriginMap[typeof payload.value] ?? origin2,
+      origin: numericOriginMap[typeof payload.value] ?? origin,
       code: "too_small",
       minimum: typeof def.value === "object" ? def.value.getTime() : def.value,
       input: payload.value,
@@ -2895,14 +2895,14 @@ var $ZodCheckNumberFormat = /* @__PURE__ */ $constructor("$ZodCheckNumberFormat"
   $ZodCheck.init(inst, def);
   def.format = def.format || "float64";
   const isInt = def.format?.includes("int");
-  const origin2 = isInt ? "int" : "number";
+  const origin = isInt ? "int" : "number";
   const [minimum, maximum] = NUMBER_FORMAT_RANGES[def.format];
   inst._zod.check = (payload) => {
     const input2 = payload.value;
     if (isInt) {
       if (!Number.isInteger(input2)) {
         payload.issues.push({
-          expected: origin2,
+          expected: origin,
           format: def.format,
           code: "invalid_type",
           continue: false,
@@ -2919,7 +2919,7 @@ var $ZodCheckNumberFormat = /* @__PURE__ */ $constructor("$ZodCheckNumberFormat"
             maximum: Number.MAX_SAFE_INTEGER,
             note: "Integers must be within the safe integer range.",
             inst,
-            origin: origin2,
+            origin,
             inclusive: true,
             continue: !def.abort
           });
@@ -2930,7 +2930,7 @@ var $ZodCheckNumberFormat = /* @__PURE__ */ $constructor("$ZodCheckNumberFormat"
             minimum: Number.MIN_SAFE_INTEGER,
             note: "Integers must be within the safe integer range.",
             inst,
-            origin: origin2,
+            origin,
             inclusive: true,
             continue: !def.abort
           });
@@ -3062,9 +3062,9 @@ var $ZodCheckMaxLength = /* @__PURE__ */ $constructor("$ZodCheckMaxLength", (ins
     const length = typeof input2 === "string" && units > def.maximum ? codePointLength(input2) : units;
     if (length <= def.maximum)
       return;
-    const origin2 = getLengthableOrigin(input2);
+    const origin = getLengthableOrigin(input2);
     payload.issues.push({
-      origin: origin2,
+      origin,
       code: "too_big",
       maximum: def.maximum,
       inclusive: true,
@@ -3084,9 +3084,9 @@ var $ZodCheckMinLength = /* @__PURE__ */ $constructor("$ZodCheckMinLength", (ins
     const length = typeof input2 === "string" && units >= def.minimum && units < def.minimum * 2 ? codePointLength(input2) : units;
     if (length >= def.minimum)
       return;
-    const origin2 = getLengthableOrigin(input2);
+    const origin = getLengthableOrigin(input2);
     payload.issues.push({
-      origin: origin2,
+      origin,
       code: "too_small",
       minimum: def.minimum,
       inclusive: true,
@@ -3106,10 +3106,10 @@ var $ZodCheckLengthEquals = /* @__PURE__ */ $constructor("$ZodCheckLengthEquals"
     const length = typeof input2 === "string" && units >= def.length && units <= def.length * 2 ? codePointLength(input2) : units;
     if (length === def.length)
       return;
-    const origin2 = getLengthableOrigin(input2);
+    const origin = getLengthableOrigin(input2);
     const tooBig = length > def.length;
     payload.issues.push({
-      origin: origin2,
+      origin,
       ...tooBig ? { code: "too_big", maximum: def.length } : { code: "too_small", minimum: def.length },
       inclusive: true,
       exact: true,
@@ -3251,16 +3251,16 @@ var $ZodCheckProperties = /* @__PURE__ */ $constructor("$ZodCheckProperties", (i
       payload.issues.push({ expected: "object", code: "invalid_type", input: payload.value, inst });
       return void 0;
     }
-    entries ?? (entries = Reflect.ownKeys(def.shape).map((key) => [key, def.shape[key]]));
+    entries ?? (entries = Reflect.ownKeys(def.shape).map((key3) => [key3, def.shape[key3]]));
     const input2 = payload.value;
     let proms;
-    for (const [key, schema] of entries) {
-      const result = schema._zod.run({ value: input2[key], issues: [] }, {});
+    for (const [key3, schema] of entries) {
+      const result = schema._zod.run({ value: input2[key3], issues: [] }, {});
       if (result instanceof Promise) {
         proms ?? (proms = []);
-        proms.push(result.then((result2) => handleCheckPropertyResult(result2, payload, key)));
+        proms.push(result.then((result2) => handleCheckPropertyResult(result2, payload, key3)));
       } else {
-        handleCheckPropertyResult(result, payload, key);
+        handleCheckPropertyResult(result, payload, key3);
       }
     }
     if (proms)
@@ -4161,8 +4161,8 @@ var $ZodArray = /* @__PURE__ */ $constructor("$ZodArray", (inst, def) => {
   };
   capSize(inst, arraySize);
 });
-function handlePropertyResult(result, final, key, input2, optin, optout) {
-  const isPresent = key in input2;
+function handlePropertyResult(result, final, key3, input2, optin, optout) {
+  const isPresent = key3 in input2;
   const isOptionalOut = optout === "optional";
   if (!isPresent && isOptionalOut && optin === "optional") {
     return;
@@ -4171,7 +4171,7 @@ function handlePropertyResult(result, final, key, input2, optin, optout) {
     if (optin !== void 0 && isOptionalOut && !isPresent) {
       return;
     }
-    final.issues.push(...prefixIssues(key, result.issues));
+    final.issues.push(...prefixIssues(key3, result.issues));
   }
   if (!isPresent && optin === void 0) {
     if (!result.issues.length) {
@@ -4179,17 +4179,17 @@ function handlePropertyResult(result, final, key, input2, optin, optout) {
         code: "invalid_type",
         expected: "nonoptional",
         input: void 0,
-        path: [key]
+        path: [key3]
       });
     }
     return;
   }
   if (result.value === void 0) {
     if (isPresent || optin === "defaulted" && !isOptionalOut) {
-      final.value[key] = void 0;
+      final.value[key3] = void 0;
     }
   } else {
-    final.value[key] = result.value;
+    final.value[key3] = result.value;
   }
 }
 var NO_SYMBOL_KEYS = [];
@@ -4222,28 +4222,28 @@ function handleCatchall(proms, input2, payload, ctx, def, inst, abortEarly) {
   const optin = _catchall.optin;
   const optout = _catchall.optout;
   let seen = 0;
-  for (const key in input2) {
+  for (const key3 in input2) {
     if (abortEarly && payload.issues.length !== seen) {
       if (aborted(payload, seen))
         break;
       seen = payload.issues.length;
     }
-    if (keySet.has(key))
+    if (keySet.has(key3))
       continue;
-    if (key === "__proto__") {
+    if (key3 === "__proto__") {
       if (t === "never")
-        unrecognized.push(key);
+        unrecognized.push(key3);
       continue;
     }
     if (t === "never") {
-      unrecognized.push(key);
+      unrecognized.push(key3);
       continue;
     }
-    const r = _catchall.run({ value: input2[key], issues: [] }, ctx);
+    const r = _catchall.run({ value: input2[key3], issues: [] }, ctx);
     if (r instanceof Promise) {
-      proms.push(r.then((r2) => handlePropertyResult(r2, payload, key, input2, optin, optout)));
+      proms.push(r.then((r2) => handlePropertyResult(r2, payload, key3, input2, optin, optout)));
     } else {
-      handlePropertyResult(r, payload, key, input2, optin, optout);
+      handlePropertyResult(r, payload, key3, input2, optin, optout);
     }
   }
   if (unrecognized.length) {
@@ -4280,16 +4280,16 @@ var $ZodObject = /* @__PURE__ */ $constructor("$ZodObject", (inst, def) => {
   defineLazyInternal(inst, "propValues", (zod) => {
     const shape = zod.def.shape;
     const propValues = {};
-    for (const key in shape) {
-      const field = shape[key]._zod;
+    for (const key3 in shape) {
+      const field = shape[key3]._zod;
       if (field.values) {
-        if (!Object.prototype.hasOwnProperty.call(propValues, key)) {
-          assignProp(propValues, key, /* @__PURE__ */ new Set());
+        if (!Object.prototype.hasOwnProperty.call(propValues, key3)) {
+          assignProp(propValues, key3, /* @__PURE__ */ new Set());
         }
         for (const v of field.values)
-          propValues[key].add(v);
+          propValues[key3].add(v);
         if (field.optin !== void 0)
-          propValues[key].add(void 0);
+          propValues[key3].add(void 0);
       }
     }
     return propValues;
@@ -4316,22 +4316,22 @@ var $ZodObject = /* @__PURE__ */ $constructor("$ZodObject", (inst, def) => {
     const shape = value.shape;
     const abortEarly = ctx?.abortEarly;
     let seen = payload.issues.length;
-    for (const key of value.allKeys) {
+    for (const key3 of value.allKeys) {
       if (abortEarly && payload.issues.length !== seen) {
         if (aborted(payload, seen))
           break;
         seen = payload.issues.length;
       }
-      if (key === "__proto__")
+      if (key3 === "__proto__")
         continue;
-      const el = shape[key];
+      const el = shape[key3];
       const optin = el._zod.optin;
       const optout = el._zod.optout;
-      const r = el._zod.run({ value: input2[key], issues: [] }, ctx);
+      const r = el._zod.run({ value: input2[key3], issues: [] }, ctx);
       if (r instanceof Promise) {
-        proms.push(r.then((r2) => handlePropertyResult(r2, payload, key, input2, optin, optout)));
+        proms.push(r.then((r2) => handlePropertyResult(r2, payload, key3, input2, optin, optout)));
       } else {
-        handlePropertyResult(r, payload, key, input2, optin, optout);
+        handlePropertyResult(r, payload, key3, input2, optin, optout);
       }
     }
     if (!catchall) {
@@ -4365,17 +4365,17 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
     doc.write(`const input = payload.value;`);
     const ids = /* @__PURE__ */ Object.create(null);
     let counter = 0;
-    for (const key of normalized.allKeys) {
-      ids[key] = `key_${counter++}`;
+    for (const key3 of normalized.allKeys) {
+      ids[key3] = `key_${counter++}`;
     }
     doc.write(memo2 ? `const newResult = memo.alloc(inst, payload, {}, ctx);` : `const newResult = {};`);
-    for (const key of normalized.allKeys) {
-      if (key === "__proto__")
+    for (const key3 of normalized.allKeys) {
+      if (key3 === "__proto__")
         continue;
-      const id = ids[key];
-      const k = typeof key === "symbol" ? `syms[${syms.indexOf(key)}]` : esc(key);
+      const id = ids[key3];
+      const k = typeof key3 === "symbol" ? `syms[${syms.indexOf(key3)}]` : esc(key3);
       const isPresent = `${k} in input`;
-      const schema = shape[key];
+      const schema = shape[key3];
       const optin = schema?._zod?.optin;
       const isOptionalIn = optin !== void 0;
       const isOptionalOut = schema?._zod?.optout === "optional";
@@ -4709,21 +4709,21 @@ function mergeValues(a, b) {
   }
   if (isPlainObject(a) && isPlainObject(b)) {
     const bKeys = Object.keys(b);
-    const sharedKeys = Object.keys(a).filter((key) => bKeys.indexOf(key) !== -1);
+    const sharedKeys = Object.keys(a).filter((key3) => bKeys.indexOf(key3) !== -1);
     const newObj = { ...a, ...b };
     if (Object.prototype.hasOwnProperty.call(newObj, "__proto__"))
       delete newObj.__proto__;
-    for (const key of sharedKeys) {
-      if (key === "__proto__")
+    for (const key3 of sharedKeys) {
+      if (key3 === "__proto__")
         continue;
-      const sharedValue = mergeValues(a[key], b[key]);
+      const sharedValue = mergeValues(a[key3], b[key3]);
       if (!sharedValue.valid) {
         return {
           valid: false,
-          mergeErrorPath: [key, ...sharedValue.mergeErrorPath]
+          mergeErrorPath: [key3, ...sharedValue.mergeErrorPath]
         };
       }
-      newObj[key] = sharedValue.data;
+      newObj[key3] = sharedValue.data;
     }
     return { valid: true, data: newObj };
   }
@@ -4882,9 +4882,9 @@ var $ZodTuple = /* @__PURE__ */ $constructor("$ZodTuple", (inst, def) => {
     return handleTupleResults(itemResults, payload, items, input2, optoutStart);
   };
 });
-function getTupleOptStart(items, key) {
+function getTupleOptStart(items, key3) {
   for (let i = items.length - 1; i >= 0; i--) {
-    const omittable = key === "optin" ? items[i]._zod.optin !== void 0 : items[i]._zod.optout === "optional";
+    const omittable = key3 === "optin" ? items[i]._zod.optin !== void 0 : items[i]._zod.optout === "optional";
     if (!omittable)
       return i + 1;
   }
@@ -4942,12 +4942,12 @@ var $ZodRecord = /* @__PURE__ */ $constructor("$ZodRecord", (inst, def) => {
     if (values && !def.partial) {
       payload.value = memo2 ? memo2.alloc(inst, payload, {}, ctx) : {};
       const recordKeys = /* @__PURE__ */ new Set();
-      for (const key of values) {
-        if (typeof key === "string" || typeof key === "number" || typeof key === "symbol") {
-          recordKeys.add(typeof key === "number" ? key.toString() : key);
-          if (key === "__proto__")
+      for (const key3 of values) {
+        if (typeof key3 === "string" || typeof key3 === "number" || typeof key3 === "symbol") {
+          recordKeys.add(typeof key3 === "number" ? key3.toString() : key3);
+          if (key3 === "__proto__")
             continue;
-          const keyResult = def.keyType._zod.run({ value: key, issues: [] }, ctx);
+          const keyResult = def.keyType._zod.run({ value: key3, issues: [] }, ctx);
           if (keyResult instanceof Promise) {
             throw new Error("Async schemas not supported in object keys currently");
           }
@@ -4956,8 +4956,8 @@ var $ZodRecord = /* @__PURE__ */ $constructor("$ZodRecord", (inst, def) => {
               code: "invalid_key",
               origin: "record",
               issues: keyResult.issues.map((iss) => finalizeIssue(iss, ctx, config())),
-              input: key,
-              path: [key],
+              input: key3,
+              path: [key3],
               inst
             });
             continue;
@@ -4965,32 +4965,32 @@ var $ZodRecord = /* @__PURE__ */ $constructor("$ZodRecord", (inst, def) => {
           const outKey = keyResult.value;
           if (outKey === "__proto__")
             continue;
-          const result = def.valueType._zod.run({ value: input2[key], issues: [] }, ctx);
+          const result = def.valueType._zod.run({ value: input2[key3], issues: [] }, ctx);
           if (result instanceof Promise) {
             proms.push(result.then((result2) => {
               if (result2.issues.length) {
-                payload.issues.push(...prefixIssues(key, result2.issues));
+                payload.issues.push(...prefixIssues(key3, result2.issues));
               }
               payload.value[outKey] = result2.value;
             }));
           } else {
             if (result.issues.length) {
-              payload.issues.push(...prefixIssues(key, result.issues));
+              payload.issues.push(...prefixIssues(key3, result.issues));
             }
             payload.value[outKey] = result.value;
           }
         }
       }
       let unrecognized;
-      for (const key in input2) {
-        if (!recordKeys.has(key)) {
+      for (const key3 in input2) {
+        if (!recordKeys.has(key3)) {
           if (def.mode === "loose") {
-            if (key === "__proto__")
+            if (key3 === "__proto__")
               continue;
-            payload.value[key] = input2[key];
+            payload.value[key3] = input2[key3];
           } else {
             unrecognized = unrecognized ?? [];
-            unrecognized.push(key);
+            unrecognized.push(key3);
           }
         }
       }
@@ -5006,18 +5006,18 @@ var $ZodRecord = /* @__PURE__ */ $constructor("$ZodRecord", (inst, def) => {
     } else {
       payload.value = memo2 ? memo2.alloc(inst, payload, {}, ctx) : {};
       let unrecognized;
-      for (const key of Reflect.ownKeys(input2)) {
-        if (key === "__proto__")
+      for (const key3 of Reflect.ownKeys(input2)) {
+        if (key3 === "__proto__")
           continue;
-        if (!Object.prototype.propertyIsEnumerable.call(input2, key))
+        if (!Object.prototype.propertyIsEnumerable.call(input2, key3))
           continue;
-        let keyResult = def.keyType._zod.run({ value: key, issues: [] }, ctx);
+        let keyResult = def.keyType._zod.run({ value: key3, issues: [] }, ctx);
         if (keyResult instanceof Promise) {
           throw new Error("Async schemas not supported in object keys currently");
         }
-        const checkNumericKey = typeof key === "string" && number.test(key) && keyResult.issues.length;
+        const checkNumericKey = typeof key3 === "string" && number.test(key3) && keyResult.issues.length;
         if (checkNumericKey) {
-          const retryResult = def.keyType._zod.run({ value: Number(key), issues: [] }, ctx);
+          const retryResult = def.keyType._zod.run({ value: Number(key3), issues: [] }, ctx);
           if (retryResult instanceof Promise) {
             throw new Error("Async schemas not supported in object keys currently");
           }
@@ -5027,17 +5027,17 @@ var $ZodRecord = /* @__PURE__ */ $constructor("$ZodRecord", (inst, def) => {
         }
         if (keyResult.issues.length) {
           if (def.mode === "loose") {
-            payload.value[key] = input2[key];
+            payload.value[key3] = input2[key3];
           } else if (values) {
             unrecognized = unrecognized ?? [];
-            unrecognized.push(key);
+            unrecognized.push(key3);
           } else {
             payload.issues.push({
               code: "invalid_key",
               origin: "record",
               issues: keyResult.issues.map((iss) => finalizeIssue(iss, ctx, config())),
-              input: key,
-              path: [key],
+              input: key3,
+              path: [key3],
               inst
             });
           }
@@ -5046,17 +5046,17 @@ var $ZodRecord = /* @__PURE__ */ $constructor("$ZodRecord", (inst, def) => {
         const outKey = keyResult.value;
         if (outKey === "__proto__")
           continue;
-        const result = def.valueType._zod.run({ value: input2[key], issues: [] }, ctx);
+        const result = def.valueType._zod.run({ value: input2[key3], issues: [] }, ctx);
         if (result instanceof Promise) {
           proms.push(result.then((result2) => {
             if (result2.issues.length) {
-              payload.issues.push(...prefixIssues(key, result2.issues));
+              payload.issues.push(...prefixIssues(key3, result2.issues));
             }
             payload.value[outKey] = result2.value;
           }));
         } else {
           if (result.issues.length) {
-            payload.issues.push(...prefixIssues(key, result.issues));
+            payload.issues.push(...prefixIssues(key3, result.issues));
           }
           payload.value[outKey] = result.value;
         }
@@ -5096,20 +5096,20 @@ var $ZodMap = /* @__PURE__ */ $constructor("$ZodMap", (inst, def) => {
     payload.value = memo2 ? memo2.alloc(inst, payload, /* @__PURE__ */ new Map(), ctx) : /* @__PURE__ */ new Map();
     const abortEarly = ctx?.abortEarly;
     let seen = payload.issues.length;
-    for (const [key, value] of input2) {
+    for (const [key3, value] of input2) {
       if (abortEarly && payload.issues.length !== seen) {
         if (aborted(payload, seen))
           break;
         seen = payload.issues.length;
       }
-      const keyResult = def.keyType._zod.run({ value: key, issues: [] }, ctx);
+      const keyResult = def.keyType._zod.run({ value: key3, issues: [] }, ctx);
       const valueResult = def.valueType._zod.run({ value, issues: [] }, ctx);
       if (keyResult instanceof Promise || valueResult instanceof Promise) {
         proms.push(Promise.all([keyResult, valueResult]).then(([keyResult2, valueResult2]) => {
-          handleMapResult(keyResult2, valueResult2, payload, key, input2, inst, ctx);
+          handleMapResult(keyResult2, valueResult2, payload, key3, input2, inst, ctx);
         }));
       } else {
-        handleMapResult(keyResult, valueResult, payload, key, input2, inst, ctx);
+        handleMapResult(keyResult, valueResult, payload, key3, input2, inst, ctx);
       }
     }
     if (proms.length)
@@ -5118,10 +5118,10 @@ var $ZodMap = /* @__PURE__ */ $constructor("$ZodMap", (inst, def) => {
   };
   capSize(inst, mapSize);
 });
-function handleMapResult(keyResult, valueResult, final, key, input2, inst, ctx) {
+function handleMapResult(keyResult, valueResult, final, key3, input2, inst, ctx) {
   if (keyResult.issues.length) {
-    if (propertyKeyTypes.has(typeof key)) {
-      final.issues.push(...prefixIssues(key, keyResult.issues));
+    if (propertyKeyTypes.has(typeof key3)) {
+      final.issues.push(...prefixIssues(key3, keyResult.issues));
     } else {
       final.issues.push({
         code: "invalid_key",
@@ -5133,15 +5133,15 @@ function handleMapResult(keyResult, valueResult, final, key, input2, inst, ctx) 
     }
   }
   if (valueResult.issues.length) {
-    if (propertyKeyTypes.has(typeof key)) {
-      final.issues.push(...prefixIssues(key, valueResult.issues));
+    if (propertyKeyTypes.has(typeof key3)) {
+      final.issues.push(...prefixIssues(key3, valueResult.issues));
     } else {
       final.issues.push({
         origin: "map",
         code: "invalid_element",
         input: input2,
         inst,
-        key,
+        key: key3,
         issues: valueResult.issues.map((iss) => finalizeIssue(iss, ctx, config()))
       });
     }
@@ -5816,8 +5816,8 @@ function isRecursive(inst, stack, resolve) {
   };
   const shape = (sh, spread) => {
     let answer = NONE;
-    for (const key of Reflect.ownKeys(sh)) {
-      const desc = Object.getOwnPropertyDescriptor(sh, key);
+    for (const key3 of Reflect.ownKeys(sh)) {
+      const desc = Object.getOwnPropertyDescriptor(sh, key3);
       if (spread && !desc.enumerable)
         continue;
       const child = desc.get ? ASSUMED : desc.value?._zod ? isRecursive(desc.value, stack, resolve) : NONE;
@@ -5913,8 +5913,8 @@ function isRecursive(inst, stack, resolve) {
       break;
     default: {
       kind;
-      for (const key in def) {
-        const desc = Object.getOwnPropertyDescriptor(def, key);
+      for (const key3 in def) {
+        const desc = Object.getOwnPropertyDescriptor(def, key3);
         if (!desc || desc.get)
           continue;
         const value = desc.value;
@@ -6134,8 +6134,8 @@ var error = () => {
     set: { unit: "\u0639\u0646\u0635\u0631", verb: "\u0623\u0646 \u064A\u062D\u0648\u064A" },
     map: { unit: "\u0639\u0646\u0635\u0631", verb: "\u0623\u0646 \u064A\u062D\u0648\u064A" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0645\u062F\u062E\u0644",
@@ -6246,8 +6246,8 @@ var error2 = () => {
     set: { unit: "element", verb: "olmal\u0131d\u0131r" },
     map: { unit: "element", verb: "olmal\u0131d\u0131r" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "input",
@@ -6407,8 +6407,8 @@ var error3 = () => {
       verb: "\u043C\u0435\u0446\u044C"
     }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0443\u0432\u043E\u0434",
@@ -6526,8 +6526,8 @@ var error4 = () => {
     set: { unit: "\u0435\u043B\u0435\u043C\u0435\u043D\u0442\u0430", verb: "\u0434\u0430 \u0441\u044A\u0434\u044A\u0440\u0436\u0430" },
     map: { unit: "\u0435\u043B\u0435\u043C\u0435\u043D\u0442\u0430", verb: "\u0434\u0430 \u0441\u044A\u0434\u044A\u0440\u0436\u0430" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0432\u0445\u043E\u0434",
@@ -6652,8 +6652,8 @@ var error5 = () => {
     set: { unit: "\u0986\u0987\u099F\u09C7\u09AE", verb: "\u09A5\u09BE\u0995\u09A4\u09C7 \u09B9\u09AC\u09C7" },
     map: { unit: "\u098F\u09A8\u09CD\u099F\u09CD\u09B0\u09BF", verb: "\u09A5\u09BE\u0995\u09A4\u09C7 \u09B9\u09AC\u09C7" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0987\u09A8\u09AA\u09C1\u099F",
@@ -6766,8 +6766,8 @@ var error6 = () => {
     set: { unit: "elements", verb: "contenir" },
     map: { unit: "elements", verb: "contenir" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "entrada",
@@ -6880,8 +6880,8 @@ var error7 = () => {
     set: { unit: "\u062F\u0627\u0646\u06D5", verb: "\u0628\u06CE\u062A" },
     map: { unit: "\u062F\u0627\u0646\u06D5", verb: "\u0628\u06CE\u062A" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "regex",
@@ -7013,8 +7013,8 @@ var error8 = () => {
     set: { unit: "prvk\u016F", verb: "m\xEDt" },
     map: { unit: "prvk\u016F", verb: "m\xEDt" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "regul\xE1rn\xED v\xFDraz",
@@ -7130,8 +7130,8 @@ var error9 = () => {
     set: { unit: "elementer", verb: "indeholdt" },
     map: { unit: "elementer", verb: "indeholdt" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "input",
@@ -7195,19 +7195,19 @@ var error9 = () => {
       case "too_big": {
         const adj = issue2.inclusive ? "<=" : "<";
         const sizing = getSizing(issue2.origin);
-        const origin2 = TypeDictionary[issue2.origin] ?? issue2.origin;
+        const origin = TypeDictionary[issue2.origin] ?? issue2.origin;
         if (sizing)
-          return `For stor: forventede ${origin2 ?? "value"} ${sizing.verb} ${adj} ${issue2.maximum.toString()} ${sizing.unit ?? "elementer"}`;
-        return `For stor: forventede ${origin2 ?? "value"} havde ${adj} ${issue2.maximum.toString()}`;
+          return `For stor: forventede ${origin ?? "value"} ${sizing.verb} ${adj} ${issue2.maximum.toString()} ${sizing.unit ?? "elementer"}`;
+        return `For stor: forventede ${origin ?? "value"} havde ${adj} ${issue2.maximum.toString()}`;
       }
       case "too_small": {
         const adj = issue2.inclusive ? ">=" : ">";
         const sizing = getSizing(issue2.origin);
-        const origin2 = TypeDictionary[issue2.origin] ?? issue2.origin;
+        const origin = TypeDictionary[issue2.origin] ?? issue2.origin;
         if (sizing) {
-          return `For lille: forventede ${origin2} ${sizing.verb} ${adj} ${issue2.minimum.toString()} ${sizing.unit}`;
+          return `For lille: forventede ${origin} ${sizing.verb} ${adj} ${issue2.minimum.toString()} ${sizing.unit}`;
         }
-        return `For lille: forventede ${origin2} havde ${adj} ${issue2.minimum.toString()}`;
+        return `For lille: forventede ${origin} havde ${adj} ${issue2.minimum.toString()}`;
       }
       case "invalid_format": {
         const _issue = issue2;
@@ -7251,8 +7251,8 @@ var error10 = () => {
     set: { unit: "Elemente", verb: "zu haben" },
     map: { unit: "Elemente", verb: "zu haben" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "Eingabe",
@@ -7365,8 +7365,8 @@ var error11 = () => {
     set: { unit: "\u03C3\u03C4\u03BF\u03B9\u03C7\u03B5\u03AF\u03B1", verb: "\u03BD\u03B1 \u03AD\u03C7\u03B5\u03B9" },
     map: { unit: "\u03BA\u03B1\u03C4\u03B1\u03C7\u03C9\u03C1\u03AE\u03C3\u03B5\u03B9\u03C2", verb: "\u03BD\u03B1 \u03AD\u03C7\u03B5\u03B9" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u03B5\u03AF\u03C3\u03BF\u03B4\u03BF\u03C2",
@@ -7478,8 +7478,8 @@ var error12 = () => {
     set: { unit: "items", verb: "to have" },
     map: { unit: "entries", verb: "to have" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "input",
@@ -7603,8 +7603,8 @@ var error13 = () => {
     set: { unit: "elementojn", verb: "havi" },
     map: { unit: "elementojn", verb: "havi" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "enigo",
@@ -7717,8 +7717,8 @@ var error14 = () => {
     array: { unit: "elementos", verb: "tener" },
     set: { unit: "elementos", verb: "tener" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "entrada",
@@ -7799,19 +7799,19 @@ var error14 = () => {
       case "too_big": {
         const adj = issue2.inclusive ? "<=" : "<";
         const sizing = getSizing(issue2.origin);
-        const origin2 = TypeDictionary[issue2.origin] ?? issue2.origin;
+        const origin = TypeDictionary[issue2.origin] ?? issue2.origin;
         if (sizing)
-          return `Demasiado grande: se esperaba que ${origin2 ?? "valor"} tuviera ${adj}${issue2.maximum.toString()} ${sizing.unit ?? "elementos"}`;
-        return `Demasiado grande: se esperaba que ${origin2 ?? "valor"} fuera ${adj}${issue2.maximum.toString()}`;
+          return `Demasiado grande: se esperaba que ${origin ?? "valor"} tuviera ${adj}${issue2.maximum.toString()} ${sizing.unit ?? "elementos"}`;
+        return `Demasiado grande: se esperaba que ${origin ?? "valor"} fuera ${adj}${issue2.maximum.toString()}`;
       }
       case "too_small": {
         const adj = issue2.inclusive ? ">=" : ">";
         const sizing = getSizing(issue2.origin);
-        const origin2 = TypeDictionary[issue2.origin] ?? issue2.origin;
+        const origin = TypeDictionary[issue2.origin] ?? issue2.origin;
         if (sizing) {
-          return `Demasiado peque\xF1o: se esperaba que ${origin2} tuviera ${adj}${issue2.minimum.toString()} ${sizing.unit}`;
+          return `Demasiado peque\xF1o: se esperaba que ${origin} tuviera ${adj}${issue2.minimum.toString()} ${sizing.unit}`;
         }
-        return `Demasiado peque\xF1o: se esperaba que ${origin2} fuera ${adj}${issue2.minimum.toString()}`;
+        return `Demasiado peque\xF1o: se esperaba que ${origin} fuera ${adj}${issue2.minimum.toString()}`;
       }
       case "invalid_format": {
         const _issue = issue2;
@@ -7855,8 +7855,8 @@ var error15 = () => {
     set: { unit: "\u0622\u06CC\u062A\u0645", verb: "\u062F\u0627\u0634\u062A\u0647 \u0628\u0627\u0634\u062F" },
     map: { unit: "\u0622\u06CC\u062A\u0645", verb: "\u062F\u0627\u0634\u062A\u0647 \u0628\u0627\u0634\u062F" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0648\u0631\u0648\u062F\u06CC",
@@ -7979,8 +7979,8 @@ var error16 = () => {
     int: { unit: "", subject: "kokonaisluvun" },
     date: { unit: "", subject: "p\xE4iv\xE4m\xE4\xE4r\xE4n" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "s\xE4\xE4nn\xF6llinen lauseke",
@@ -8092,8 +8092,8 @@ var error17 = () => {
     array: { unit: "\xE9l\xE9ments", verb: "avoir" },
     set: { unit: "\xE9l\xE9ments", verb: "avoir" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "expression r\xE9guli\xE8re",
@@ -8223,8 +8223,8 @@ var error18 = () => {
     set: { unit: "\xE9l\xE9ments", verb: "avoir" },
     map: { unit: "\xE9l\xE9ments", verb: "avoir" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "entr\xE9e",
@@ -8336,8 +8336,8 @@ var error19 = () => {
     set: { unit: "\u0A86\u0A87\u0A9F\u0AAE", verb: "\u0AB9\u0ACB\u0AB5\u0ABE \u0A9C\u0ACB\u0A88\u0A8F" },
     map: { unit: "\u0A8F\u0AA8\u0ACD\u0A9F\u0ACD\u0AB0\u0AC0", verb: "\u0AB9\u0ACB\u0AB5\u0ABE \u0A9C\u0ACB\u0A88\u0A8F" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0A87\u0AA8\u0AAA\u0AC1\u0A9F",
@@ -8484,10 +8484,10 @@ var error20 = () => {
     const gender = e?.gender ?? "m";
     return gender === "f" ? "\u05E6\u05E8\u05D9\u05DB\u05D4 \u05DC\u05D4\u05D9\u05D5\u05EA" : "\u05E6\u05E8\u05D9\u05DA \u05DC\u05D4\u05D9\u05D5\u05EA";
   };
-  const getSizing = (origin2) => {
-    if (!origin2)
+  const getSizing = (origin) => {
+    if (!origin)
       return null;
-    return Sizable[origin2] ?? null;
+    return Sizable[origin] ?? null;
   };
   const FormatDictionary = {
     regex: { label: "\u05E7\u05DC\u05D8", gender: "m" },
@@ -8652,8 +8652,8 @@ var error21 = () => {
     set: { unit: "\u0924\u0924\u094D\u0935", verb: "\u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F" },
     map: { unit: "\u092A\u094D\u0930\u0935\u093F\u0937\u094D\u091F\u093F\u092F\u093E\u0901", verb: "\u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0907\u0928\u092A\u0941\u091F",
@@ -8763,8 +8763,8 @@ var error22 = () => {
     array: { unit: "stavki", verb: "imati" },
     set: { unit: "stavki", verb: "imati" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "unos",
@@ -8835,19 +8835,19 @@ var error22 = () => {
       case "too_big": {
         const adj = issue2.inclusive ? "<=" : "<";
         const sizing = getSizing(issue2.origin);
-        const origin2 = TypeDictionary[issue2.origin] ?? issue2.origin;
+        const origin = TypeDictionary[issue2.origin] ?? issue2.origin;
         if (sizing)
-          return `Preveliko: o\u010Dekivano da ${origin2 ?? "vrijednost"} ima ${adj}${issue2.maximum.toString()} ${sizing.unit ?? "elemenata"}`;
-        return `Preveliko: o\u010Dekivano da ${origin2 ?? "vrijednost"} bude ${adj}${issue2.maximum.toString()}`;
+          return `Preveliko: o\u010Dekivano da ${origin ?? "vrijednost"} ima ${adj}${issue2.maximum.toString()} ${sizing.unit ?? "elemenata"}`;
+        return `Preveliko: o\u010Dekivano da ${origin ?? "vrijednost"} bude ${adj}${issue2.maximum.toString()}`;
       }
       case "too_small": {
         const adj = issue2.inclusive ? ">=" : ">";
         const sizing = getSizing(issue2.origin);
-        const origin2 = TypeDictionary[issue2.origin] ?? issue2.origin;
+        const origin = TypeDictionary[issue2.origin] ?? issue2.origin;
         if (sizing) {
-          return `Premalo: o\u010Dekivano da ${origin2} ima ${adj}${issue2.minimum.toString()} ${sizing.unit}`;
+          return `Premalo: o\u010Dekivano da ${origin} ima ${adj}${issue2.minimum.toString()} ${sizing.unit}`;
         }
-        return `Premalo: o\u010Dekivano da ${origin2} bude ${adj}${issue2.minimum.toString()}`;
+        return `Premalo: o\u010Dekivano da ${origin} bude ${adj}${issue2.minimum.toString()}`;
       }
       case "invalid_format": {
         const _issue = issue2;
@@ -8891,8 +8891,8 @@ var error23 = () => {
     set: { unit: "elem", verb: "legyen" },
     map: { unit: "elem", verb: "legyen" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "bemenet",
@@ -9045,8 +9045,8 @@ var error24 = () => {
       verb: "\u0578\u0582\u0576\u0565\u0576\u0561\u056C"
     }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0574\u0578\u0582\u057F\u0584",
@@ -9164,8 +9164,8 @@ var error25 = () => {
     set: { unit: "item", verb: "memiliki" },
     map: { unit: "item", verb: "memiliki" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "input",
@@ -9276,8 +9276,8 @@ var error26 = () => {
     set: { unit: "hluti", verb: "a\xF0 hafa" },
     map: { unit: "hluti", verb: "a\xF0 hafa" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "gildi",
@@ -9391,8 +9391,8 @@ var error27 = () => {
     set: { unit: "elementi", verb: "avere" },
     map: { unit: "elementi", verb: "avere" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "input",
@@ -9505,8 +9505,8 @@ var error28 = () => {
     set: { unit: "\u8981\u7D20", verb: "\u3067\u3042\u308B" },
     map: { unit: "\u8981\u7D20", verb: "\u3067\u3042\u308B" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u5165\u529B\u5024",
@@ -9618,8 +9618,8 @@ var error29 = () => {
     set: { unit: "\u10D4\u10DA\u10D4\u10DB\u10D4\u10DC\u10E2\u10D8", verb: "\u10E3\u10DC\u10D3\u10D0 \u10E8\u10D4\u10D8\u10EA\u10D0\u10D5\u10D3\u10D4\u10E1" },
     map: { unit: "\u10D4\u10DA\u10D4\u10DB\u10D4\u10DC\u10E2\u10D8", verb: "\u10E3\u10DC\u10D3\u10D0 \u10E8\u10D4\u10D8\u10EA\u10D0\u10D5\u10D3\u10D4\u10E1" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u10E8\u10D4\u10E7\u10D5\u10D0\u10DC\u10D0",
@@ -9736,8 +9736,8 @@ var error30 = () => {
     set: { unit: "\u1792\u17B6\u178F\u17BB", verb: "\u1782\u17BD\u179A\u1798\u17B6\u1793" },
     map: { unit: "\u1792\u17B6\u178F\u17BB", verb: "\u1782\u17BD\u179A\u1798\u17B6\u1793" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u1791\u17B7\u1793\u17D2\u1793\u1793\u17D0\u1799\u1794\u1789\u17D2\u1785\u17BC\u179B",
@@ -9857,8 +9857,8 @@ var error31 = () => {
     set: { unit: "\u0CB5\u0CB8\u0CCD\u0CA4\u0CC1\u0C97\u0CB3\u0CC1", verb: "\u0CB9\u0CCA\u0C82\u0CA6\u0CB2\u0CC1" },
     map: { unit: "entries", verb: "\u0CB9\u0CCA\u0C82\u0CA6\u0CB2\u0CC1" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0C87\u0CA8\u0CCD\u0CAA\u0CC1\u0C9F\u0CCD",
@@ -9973,8 +9973,8 @@ var error32 = () => {
     set: { unit: "\uAC1C", verb: "to have" },
     map: { unit: "\uAC1C", verb: "to have" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\uC785\uB825",
@@ -10166,8 +10166,8 @@ var error33 = () => {
       }
     }
   };
-  function getSizing(origin2, unitType, inclusive, targetShouldBe) {
-    const result = Sizable[origin2] ?? null;
+  function getSizing(origin, unitType, inclusive, targetShouldBe) {
+    const result = Sizable[origin] ?? null;
     if (result === null)
       return result;
     return {
@@ -10238,20 +10238,20 @@ var error33 = () => {
           return `Privalo b\u016Bti ${stringifyPrimitive(issue2.values[0])}`;
         return `Privalo b\u016Bti vienas i\u0161 ${joinValues(issue2.values, "|")} pasirinkim\u0173`;
       case "too_big": {
-        const origin2 = TypeDictionary[issue2.origin] ?? issue2.origin;
+        const origin = TypeDictionary[issue2.origin] ?? issue2.origin;
         const sizing = getSizing(issue2.origin, getUnitTypeFromNumber(Number(issue2.maximum)), issue2.inclusive ?? false, "smaller");
         if (sizing?.verb)
-          return `${capitalizeFirstCharacter(origin2 ?? issue2.origin ?? "reik\u0161m\u0117")} ${sizing.verb} ${issue2.maximum.toString()} ${sizing.unit ?? "element\u0173"}`;
+          return `${capitalizeFirstCharacter(origin ?? issue2.origin ?? "reik\u0161m\u0117")} ${sizing.verb} ${issue2.maximum.toString()} ${sizing.unit ?? "element\u0173"}`;
         const adj = issue2.inclusive ? "ne didesnis kaip" : "ma\u017Eesnis kaip";
-        return `${capitalizeFirstCharacter(origin2 ?? issue2.origin ?? "reik\u0161m\u0117")} turi b\u016Bti ${adj} ${issue2.maximum.toString()} ${sizing?.unit}`;
+        return `${capitalizeFirstCharacter(origin ?? issue2.origin ?? "reik\u0161m\u0117")} turi b\u016Bti ${adj} ${issue2.maximum.toString()} ${sizing?.unit}`;
       }
       case "too_small": {
-        const origin2 = TypeDictionary[issue2.origin] ?? issue2.origin;
+        const origin = TypeDictionary[issue2.origin] ?? issue2.origin;
         const sizing = getSizing(issue2.origin, getUnitTypeFromNumber(Number(issue2.minimum)), issue2.inclusive ?? false, "bigger");
         if (sizing?.verb)
-          return `${capitalizeFirstCharacter(origin2 ?? issue2.origin ?? "reik\u0161m\u0117")} ${sizing.verb} ${issue2.minimum.toString()} ${sizing.unit ?? "element\u0173"}`;
+          return `${capitalizeFirstCharacter(origin ?? issue2.origin ?? "reik\u0161m\u0117")} ${sizing.verb} ${issue2.minimum.toString()} ${sizing.unit ?? "element\u0173"}`;
         const adj = issue2.inclusive ? "ne ma\u017Eesnis kaip" : "didesnis kaip";
-        return `${capitalizeFirstCharacter(origin2 ?? issue2.origin ?? "reik\u0161m\u0117")} turi b\u016Bti ${adj} ${issue2.minimum.toString()} ${sizing?.unit}`;
+        return `${capitalizeFirstCharacter(origin ?? issue2.origin ?? "reik\u0161m\u0117")} turi b\u016Bti ${adj} ${issue2.minimum.toString()} ${sizing?.unit}`;
       }
       case "invalid_format": {
         const _issue = issue2;
@@ -10275,8 +10275,8 @@ var error33 = () => {
       case "invalid_union":
         return "Klaidinga \u012Fvestis";
       case "invalid_element": {
-        const origin2 = TypeDictionary[issue2.origin] ?? issue2.origin;
-        return `${capitalizeFirstCharacter(origin2 ?? issue2.origin ?? "reik\u0161m\u0117")} turi klaiding\u0105 \u012Fvest\u012F`;
+        const origin = TypeDictionary[issue2.origin] ?? issue2.origin;
+        return `${capitalizeFirstCharacter(origin ?? issue2.origin ?? "reik\u0161m\u0117")} turi klaiding\u0105 \u012Fvest\u012F`;
       }
       default:
         return "Klaidinga \u012Fvestis";
@@ -10298,8 +10298,8 @@ var error34 = () => {
     set: { unit: "\u0441\u0442\u0430\u0432\u043A\u0438", verb: "\u0434\u0430 \u0438\u043C\u0430\u0430\u0442" },
     map: { unit: "\u0441\u0442\u0430\u0432\u043A\u0438", verb: "\u0434\u0430 \u0438\u043C\u0430\u0430\u0442" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0432\u043D\u0435\u0441",
@@ -10413,8 +10413,8 @@ var error35 = () => {
     set: { unit: "elemen", verb: "mempunyai" },
     map: { unit: "elemen", verb: "mempunyai" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "input",
@@ -10526,8 +10526,8 @@ var error36 = () => {
     set: { unit: "\u0924\u0924\u094D\u0935", verb: "\u0939\u0941\u0928\u0941\u092A\u0930\u094D\u091B" },
     map: { unit: "\u092A\u094D\u0930\u0935\u093F\u0937\u094D\u091F\u093F", verb: "\u0939\u0941\u0928\u0941\u092A\u0930\u094D\u091B" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0907\u0928\u092A\u0941\u091F",
@@ -10638,8 +10638,8 @@ var error37 = () => {
     set: { unit: "elementen", verb: "heeft" },
     map: { unit: "elementen", verb: "heeft" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "invoer",
@@ -10754,8 +10754,8 @@ var error38 = () => {
     set: { unit: "element", verb: "\xE5 innehalde" },
     map: { unit: "element", verb: "\xE5 innehalde" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "input",
@@ -10868,8 +10868,8 @@ var error39 = () => {
     set: { unit: "elementer", verb: "\xE5 inneholde" },
     map: { unit: "elementer", verb: "\xE5 inneholde" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "input",
@@ -10982,8 +10982,8 @@ var error40 = () => {
     set: { unit: "unsur", verb: "olmal\u0131d\u0131r" },
     map: { unit: "unsur", verb: "olmal\u0131d\u0131r" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "giren",
@@ -11097,8 +11097,8 @@ var error41 = () => {
     set: { unit: "\u062A\u0648\u06A9\u064A", verb: "\u0648\u0644\u0631\u064A" },
     map: { unit: "\u062A\u0648\u06A9\u064A", verb: "\u0648\u0644\u0631\u064A" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0648\u0631\u0648\u062F\u064A",
@@ -11217,8 +11217,8 @@ var error42 = () => {
     set: { unit: "element\xF3w", verb: "mie\u0107" },
     map: { unit: "element\xF3w", verb: "mie\u0107" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "wyra\u017Cenie",
@@ -11332,8 +11332,8 @@ var error43 = () => {
     set: { unit: "elementos" },
     map: { unit: "entradas" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "a entrada",
@@ -11476,8 +11476,8 @@ var error44 = () => {
     set: { unit: "elementos" },
     map: { unit: "entradas" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "a entrada",
@@ -11621,8 +11621,8 @@ var error45 = () => {
     set: { unit: "elemente", verb: "s\u0103 aib\u0103" },
     map: { unit: "intr\u0103ri", verb: "s\u0103 aib\u0103" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "intrare",
@@ -11794,8 +11794,8 @@ var error46 = () => {
       verb: "\u0438\u043C\u0435\u0442\u044C"
     }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0432\u0432\u043E\u0434",
@@ -11913,8 +11913,8 @@ var error47 = () => {
     set: { unit: "prvkov", verb: "ma\u0165" },
     map: { unit: "polo\u017Eiek", verb: "ma\u0165" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "regul\xE1rny v\xFDraz",
@@ -12030,8 +12030,8 @@ var error48 = () => {
     set: { unit: "elementov", verb: "imeti" },
     map: { unit: "elementov", verb: "imeti" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "vnos",
@@ -12145,8 +12145,8 @@ var error49 = () => {
     set: { unit: "objekt", verb: "att inneh\xE5lla" },
     map: { unit: "objekt", verb: "att inneh\xE5lla" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "regulj\xE4rt uttryck",
@@ -12261,8 +12261,8 @@ var error50 = () => {
     set: { unit: "\u0B89\u0BB1\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1\u0B95\u0BB3\u0BCD", verb: "\u0B95\u0BCA\u0BA3\u0BCD\u0B9F\u0BBF\u0BB0\u0BC1\u0B95\u0BCD\u0B95 \u0BB5\u0BC7\u0BA3\u0BCD\u0B9F\u0BC1\u0BAE\u0BCD" },
     map: { unit: "\u0B89\u0BB1\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1\u0B95\u0BB3\u0BCD", verb: "\u0B95\u0BCA\u0BA3\u0BCD\u0B9F\u0BBF\u0BB0\u0BC1\u0B95\u0BCD\u0B95 \u0BB5\u0BC7\u0BA3\u0BCD\u0B9F\u0BC1\u0BAE\u0BCD" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0B89\u0BB3\u0BCD\u0BB3\u0BC0\u0B9F\u0BC1",
@@ -12377,8 +12377,8 @@ var error51 = () => {
     set: { unit: "\u0443\u043D\u0441\u0443\u0440", verb: "\u0434\u043E\u0448\u0442\u0430 \u0431\u043E\u0448\u0430\u0434" },
     map: { unit: "\u0441\u0430\u0431\u0442", verb: "\u0434\u043E\u0448\u0442\u0430 \u0431\u043E\u0448\u0430\u0434" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0432\u0443\u0440\u0443\u0434",
@@ -12494,8 +12494,8 @@ var error52 = () => {
     set: { unit: "\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23", verb: "\u0E04\u0E27\u0E23\u0E21\u0E35" },
     map: { unit: "\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23", verb: "\u0E04\u0E27\u0E23\u0E21\u0E35" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E17\u0E35\u0E48\u0E1B\u0E49\u0E2D\u0E19",
@@ -12610,8 +12610,8 @@ var error53 = () => {
     set: { unit: "elementler", verb: "bolmaly" },
     map: { unit: "elementler", verb: "bolmaly" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "giri\u015F",
@@ -12718,8 +12718,8 @@ var error54 = () => {
     set: { unit: "\xF6\u011Fe", verb: "olmal\u0131" },
     map: { unit: "\xF6\u011Fe", verb: "olmal\u0131" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "girdi",
@@ -12829,8 +12829,8 @@ var error55 = () => {
     set: { unit: "\u0435\u043B\u0435\u043C\u0435\u043D\u0442\u0456\u0432", verb: "\u043C\u0430\u0442\u0438\u043C\u0435" },
     map: { unit: "\u0435\u043B\u0435\u043C\u0435\u043D\u0442\u0456\u0432", verb: "\u043C\u0430\u0442\u0438\u043C\u0435" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0432\u0445\u0456\u0434\u043D\u0456 \u0434\u0430\u043D\u0456",
@@ -12948,8 +12948,8 @@ var error56 = () => {
     set: { unit: "\u0622\u0626\u0679\u0645\u0632", verb: "\u06C1\u0648\u0646\u0627" },
     map: { unit: "\u0622\u0626\u0679\u0645\u0632", verb: "\u06C1\u0648\u0646\u0627" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0627\u0646 \u067E\u0679",
@@ -13064,8 +13064,8 @@ var error57 = () => {
     set: { unit: "element", verb: "bo\u2018lishi kerak" },
     map: { unit: "yozuv", verb: "bo\u2018lishi kerak" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "kirish",
@@ -13178,8 +13178,8 @@ var error58 = () => {
     set: { unit: "ph\u1EA7n t\u1EED", verb: "c\xF3" },
     map: { unit: "ph\u1EA7n t\u1EED", verb: "c\xF3" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u0111\u1EA7u v\xE0o",
@@ -13292,8 +13292,8 @@ var error59 = () => {
     set: { unit: "\u9879", verb: "\u5305\u542B" },
     map: { unit: "\u9879", verb: "\u5305\u542B" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u8F93\u5165",
@@ -13407,8 +13407,8 @@ var error60 = () => {
     set: { unit: "\u9805\u76EE", verb: "\u64C1\u6709" },
     map: { unit: "\u9805\u76EE", verb: "\u64C1\u6709" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u8F38\u5165",
@@ -13520,8 +13520,8 @@ var error61 = () => {
     set: { unit: "nkan", verb: "n\xED" },
     map: { unit: "nkan", verb: "n\xED" }
   };
-  function getSizing(origin2) {
-    return Sizable[origin2] ?? null;
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
   }
   const FormatDictionary = {
     regex: "\u1EB9\u0300r\u1ECD \xECb\xE1w\u1ECDl\xE9",
@@ -14047,11 +14047,11 @@ function generatePropertiesChecks(doc, ctx, def, accessor) {
   }
   doc.write(`if (${accessor} == null) return INVALID;`);
   const shape = def.shape;
-  for (const key of Reflect.ownKeys(shape)) {
-    const keyExpr = typeof key === "symbol" ? addConstant(ctx, key) : esc(key);
+  for (const key3 of Reflect.ownKeys(shape)) {
+    const keyExpr = typeof key3 === "symbol" ? addConstant(ctx, key3) : esc(key3);
     const inputVar = newVar(ctx);
     doc.write(`const ${inputVar} = ${accessor}[${keyExpr}];`);
-    compileChild(doc, ctx, shape[key], inputVar, false);
+    compileChild(doc, ctx, shape[key3], inputVar, false);
   }
 }
 function generatePropertyCheck(doc, ctx, def, accessor) {
@@ -14444,9 +14444,9 @@ function generateObjectCheck(doc, ctx, schema, accessor, buildsValue = true) {
     throw new ZodCompileUnsupportedError('object shape key "__proto__"');
   }
   const propOutputs = /* @__PURE__ */ new Map();
-  for (const key of allKeys) {
-    const propSchema = propShape[key];
-    const kx = keyExpr(key);
+  for (const key3 of allKeys) {
+    const propSchema = propShape[key3];
+    const kx = keyExpr(key3);
     const inputVar = newVar(ctx);
     doc.write(`const ${inputVar} = ${accessor}[${kx}];`);
     if (propSchema._zod.optin !== void 0) {
@@ -14467,14 +14467,14 @@ function generateObjectCheck(doc, ctx, schema, accessor, buildsValue = true) {
       } else {
         doc.write(`if (${outputVar2} === INVALID) return INVALID;`);
       }
-      propOutputs.set(key, outputVar2);
+      propOutputs.set(key3, outputVar2);
     } else {
       if (requiresPresenceCheck(propSchema)) {
         doc.write(`if (!(${kx} in ${accessor})) return INVALID;`);
       }
       const outputAccessor = compileChild(doc, ctx, propSchema, inputVar, buildsValue);
       if (outputAccessor !== null)
-        propOutputs.set(key, outputAccessor);
+        propOutputs.set(key3, outputAccessor);
     }
   }
   const catchall = def.catchall;
@@ -14895,9 +14895,9 @@ function generateTupleCheck(doc, ctx, schema, accessor) {
   }
   return outputVar;
 }
-function getTupleOptStart2(items, key) {
+function getTupleOptStart2(items, key3) {
   for (let i = items.length - 1; i >= 0; i--) {
-    const omittable = key === "optin" ? items[i]._zod.optin !== void 0 : items[i]._zod.optout === "optional";
+    const omittable = key3 === "optin" ? items[i]._zod.optin !== void 0 : items[i]._zod.optout === "optional";
     if (!omittable)
       return i + 1;
   }
@@ -15027,16 +15027,16 @@ function generateRecordCheck(doc, ctx, schema, accessor) {
   const keyValues = recordDef.partial ? void 0 : def.keyType._zod.values;
   if (keyValues) {
     const inputKeys = [];
-    for (const key of keyValues) {
-      if (!(typeof key === "string" || typeof key === "number" || typeof key === "symbol")) {
-        throw new ZodCompileUnsupportedError(`record key value ${String(key)}`);
+    for (const key3 of keyValues) {
+      if (!(typeof key3 === "string" || typeof key3 === "number" || typeof key3 === "symbol")) {
+        throw new ZodCompileUnsupportedError(`record key value ${String(key3)}`);
       }
-      const inputKey = typeof key === "number" ? key.toString() : key;
+      const inputKey = typeof key3 === "number" ? key3.toString() : key3;
       if (inputKey === "__proto__") {
         throw new ZodCompileUnsupportedError('record key "__proto__"');
       }
       inputKeys.push(inputKey);
-      const keyConst = addConstant(ctx, key);
+      const keyConst = addConstant(ctx, key3);
       const outKey = generateCheck(doc, ctx, def.keyType, keyConst);
       const valueVar = newVar(ctx);
       doc.write(`const ${valueVar} = ${accessor}[${literalPropertyKey(ctx, inputKey)}];`);
@@ -15114,10 +15114,10 @@ function emitOwnKeys(doc, ctx, accessor, kVar, body, onSymbol) {
   });
   doc.write(`}`);
 }
-function literalPropertyKey(ctx, key) {
-  if (typeof key === "string")
-    return esc(key);
-  return addConstant(ctx, key);
+function literalPropertyKey(ctx, key3) {
+  if (typeof key3 === "string")
+    return esc(key3);
+  return addConstant(ctx, key3);
 }
 function generateMapCheck(doc, ctx, schema, accessor) {
   const def = schema._zod.def;
@@ -16346,9 +16346,9 @@ function _stringFormat(Class2, format, fnOrRegex, _params = {}) {
 // node_modules/zod/v4/core/to-json-schema.js
 function assignProps(target, ...sources) {
   for (const source of sources) {
-    for (const key of Reflect.ownKeys(source)) {
-      if (Object.prototype.propertyIsEnumerable.call(source, key)) {
-        assignProp(target, key, source[key]);
+    for (const key3 of Reflect.ownKeys(source)) {
+      if (Object.prototype.propertyIsEnumerable.call(source, key3)) {
+        assignProp(target, key3, source[key3]);
       }
     }
   }
@@ -16494,8 +16494,8 @@ function extractDefs(ctx, schema) {
     if (defId)
       seen.defId = defId;
     const schema2 = seen.schema;
-    for (const key in schema2) {
-      delete schema2[key];
+    for (const key3 in schema2) {
+      delete schema2[key3];
     }
     schema2.$ref = ref;
   };
@@ -16576,8 +16576,8 @@ function foldObjects(members2) {
   for (const member of members2) {
     if (typeof member !== "object" || member.type !== "object")
       return null;
-    for (const key in member) {
-      if (!FOLDABLE_KEYS.has(key))
+    for (const key3 in member) {
+      if (!FOLDABLE_KEYS.has(key3))
         return null;
     }
     objects.push(member);
@@ -16585,22 +16585,22 @@ function foldObjects(members2) {
   const properties = {};
   const required2 = /* @__PURE__ */ new Set();
   for (const object2 of objects) {
-    for (const key in object2.properties) {
-      if (Object.prototype.hasOwnProperty.call(properties, key))
+    for (const key3 in object2.properties) {
+      if (Object.prototype.hasOwnProperty.call(properties, key3))
         continue;
       const parts = [];
       for (const other of objects) {
-        const part = other.properties?.[key] ?? undeclaredConstraint(other);
+        const part = other.properties?.[key3] ?? undeclaredConstraint(other);
         if (part === null || part === void 0)
           continue;
         if (!parts.some((seen) => JSON.stringify(seen) === JSON.stringify(part)))
           parts.push(part);
       }
       const merged = parts.length === 1 ? parts[0] : foldObjects(parts) ?? { allOf: parts };
-      assignProp(properties, key, merged);
+      assignProp(properties, key3, merged);
     }
-    for (const key of object2.required ?? [])
-      required2.add(key);
+    for (const key3 of object2.required ?? [])
+      required2.add(key3);
   }
   const folded = { type: "object", properties };
   if (required2.size)
@@ -16625,8 +16625,8 @@ function foldIntersection(json2) {
   const allOf = json2.allOf;
   if (!Array.isArray(allOf) || allOf.length < 2)
     return;
-  for (const key of FOLDABLE_KEYS)
-    if (key in json2)
+  for (const key3 of FOLDABLE_KEYS)
+    if (key3 in json2)
       return;
   const unions = allOf.filter((m) => UNION_KEYS.some((k) => Array.isArray(m[k])));
   let folded = null;
@@ -16673,20 +16673,20 @@ function finalize(ctx, schema) {
       assignProps(schema2, _cached);
       const isParentRef = zodSchema._zod.parent === ref;
       if (isParentRef) {
-        for (const key in schema2) {
-          if (key === "$ref" || key === "allOf")
+        for (const key3 in schema2) {
+          if (key3 === "$ref" || key3 === "allOf")
             continue;
-          if (!(key in _cached)) {
-            delete schema2[key];
+          if (!(key3 in _cached)) {
+            delete schema2[key3];
           }
         }
       }
       if (refSchema.$ref && refSeen.def) {
-        for (const key in schema2) {
-          if (key === "$ref" || key === "allOf")
+        for (const key3 in schema2) {
+          if (key3 === "$ref" || key3 === "allOf")
             continue;
-          if (key in refSeen.def && JSON.stringify(schema2[key]) === JSON.stringify(refSeen.def[key])) {
-            delete schema2[key];
+          if (key3 in refSeen.def && JSON.stringify(schema2[key3]) === JSON.stringify(refSeen.def[key3])) {
+            delete schema2[key3];
           }
         }
       }
@@ -16698,11 +16698,11 @@ function finalize(ctx, schema) {
       if (parentSeen?.schema.$ref) {
         schema2.$ref = parentSeen.schema.$ref;
         if (parentSeen.def) {
-          for (const key in schema2) {
-            if (key === "$ref" || key === "allOf")
+          for (const key3 in schema2) {
+            if (key3 === "$ref" || key3 === "allOf")
               continue;
-            if (key in parentSeen.def && JSON.stringify(schema2[key]) === JSON.stringify(parentSeen.def[key])) {
-              delete schema2[key];
+            if (key3 in parentSeen.def && JSON.stringify(schema2[key3]) === JSON.stringify(parentSeen.def[key3])) {
+              delete schema2[key3];
             }
           }
         }
@@ -16835,8 +16835,8 @@ function isTransforming(_schema, _ctx) {
     return isTransforming(def.in, ctx) || isTransforming(def.out, ctx);
   }
   if (def.type === "object") {
-    for (const key in def.shape) {
-      if (isTransforming(def.shape[key], ctx))
+    for (const key3 in def.shape) {
+      if (isTransforming(def.shape[key3], ctx))
         return true;
     }
     return false;
@@ -16874,13 +16874,13 @@ var createStandardJSONSchemaMethod = (schema, io, processors = {}) => (params) =
 };
 
 // node_modules/zod/v4/core/json-schema-processors.js
-var narrowMin = (agg, key, value) => {
-  if (agg[key] === void 0 || value > agg[key])
-    agg[key] = value;
+var narrowMin = (agg, key3, value) => {
+  if (agg[key3] === void 0 || value > agg[key3])
+    agg[key3] = value;
 };
-var narrowMax = (agg, key, value) => {
-  if (agg[key] === void 0 || value < agg[key])
-    agg[key] = value;
+var narrowMax = (agg, key3, value) => {
+  if (agg[key3] === void 0 || value < agg[key3])
+    agg[key3] = value;
 };
 var narrowBoth = (agg, value) => {
   narrowMin(agg, "minimum", value);
@@ -17218,17 +17218,17 @@ var objectProcessor = (schema, ctx, _json, params) => {
   }
   json2.type = "object";
   json2.properties = {};
-  for (const key in shape) {
-    assignProp(json2.properties, key, processSchema(shape[key], ctx, {
+  for (const key3 in shape) {
+    assignProp(json2.properties, key3, processSchema(shape[key3], ctx, {
       ...params,
-      path: [...params.path, "properties", key]
+      path: [...params.path, "properties", key3]
     }));
   }
   const requiredKeys = [];
-  for (const key of Object.keys(shape)) {
-    const field = def.shape[key];
+  for (const key3 of Object.keys(shape)) {
+    const field = def.shape[key3];
     if (ctx.io === "input" ? inputOptin(field) === void 0 : field._zod.optout === void 0) {
-      requiredKeys.push(key);
+      requiredKeys.push(key3);
     }
   }
   if (requiredKeys.length > 0) {
@@ -17603,9 +17603,9 @@ function toJSONSchema(input2, params) {
     };
     ctx2.external = external;
     for (const entry of registry2._idmap.entries()) {
-      const [key, schema] = entry;
+      const [key3, schema] = entry;
       extractDefs(ctx2, schema);
-      assignProp(schemas, key, finalize(ctx2, schema));
+      assignProp(schemas, key3, finalize(ctx2, schema));
     }
     if (Object.keys(defs).length > 0) {
       const defsSegment = ctx2.target === "draft-2020-12" ? "$defs" : "definitions";
@@ -17920,17 +17920,17 @@ __export(checks_exports2, {
 
 // node_modules/zod/v4/classic/errors.js
 var _installedErrorProtos = /* @__PURE__ */ new WeakSet([Object.prototype, Error.prototype]);
-function _lazyMethod(proto, key, make) {
-  Object.defineProperty(proto, key, {
+function _lazyMethod(proto, key3, make) {
+  Object.defineProperty(proto, key3, {
     configurable: true,
     enumerable: false,
     get() {
       const value = make(this);
-      Object.defineProperty(this, key, { value, configurable: true, writable: true });
+      Object.defineProperty(this, key3, { value, configurable: true, writable: true });
       return value;
     },
     set(value) {
-      Object.defineProperty(this, key, { value, configurable: true, writable: true });
+      Object.defineProperty(this, key3, { value, configurable: true, writable: true });
     }
   });
 }
@@ -19600,11 +19600,11 @@ function resolveRef(ref, ctx) {
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
   if (path[0] === defsKey) {
-    const key = path[1] === void 0 ? void 0 : decodeJSONPointerSegment(path[1]);
-    if (!key || !ctx.defs[key]) {
+    const key3 = path[1] === void 0 ? void 0 : decodeJSONPointerSegment(path[1]);
+    if (!key3 || !ctx.defs[key3]) {
       throw new Error(`Reference not found: ${ref}`);
     }
-    return ctx.defs[key];
+    return ctx.defs[key3];
   }
   throw new Error(`Reference not found: ${ref}`);
 }
@@ -19639,16 +19639,16 @@ function checkObjectGuards(objectSchema, guards) {
       });
     }
     if (guards.keySchema) {
-      for (const key of keys) {
-        const result = guards.keySchema.safeParse(key);
+      for (const key3 of keys) {
+        const result = guards.keySchema.safeParse(key3);
         if (result.success)
           continue;
         payload.issues.push({
           code: "invalid_key",
           origin: "record",
           issues: result.error.issues,
-          input: key,
-          path: [key],
+          input: key3,
+          path: [key3],
           continue: true
         });
       }
@@ -19673,20 +19673,20 @@ function canonicalKey(value, seen) {
     if (Array.isArray(value)) {
       const parts2 = [];
       for (const item of value) {
-        const key = canonicalKey(item, seen);
-        if (key === null)
+        const key3 = canonicalKey(item, seen);
+        if (key3 === null)
           return null;
-        parts2.push(key);
+        parts2.push(key3);
       }
       return `a${parts2.length}:[${parts2.join(",")}]`;
     }
     const keys = Object.keys(value).sort();
     const parts = [];
     for (const k of keys) {
-      const key = canonicalKey(value[k], seen);
-      if (key === null)
+      const key3 = canonicalKey(value[k], seen);
+      if (key3 === null)
         return null;
-      parts.push(`${k.length}:${k}=${key}`);
+      parts.push(`${k.length}:${k}=${key3}`);
     }
     return `o${parts.length}:{${parts.join(",")}}`;
   } finally {
@@ -19726,10 +19726,10 @@ function containsRef(value) {
     return value.some(containsRef);
   if (typeof value.$ref === "string")
     return true;
-  return Object.entries(value).some(([key, sub]) => {
-    if (SCHEMA_KEYWORDS.has(key))
+  return Object.entries(value).some(([key3, sub]) => {
+    if (SCHEMA_KEYWORDS.has(key3))
       return containsRef(sub);
-    if (!SCHEMA_MAP_KEYWORDS.has(key) || typeof sub !== "object" || sub === null)
+    if (!SCHEMA_MAP_KEYWORDS.has(key3) || typeof sub !== "object" || sub === null)
       return false;
     return Object.values(sub).some(containsRef);
   });
@@ -19745,12 +19745,12 @@ function checkArrayGuards(arraySchema, guards) {
     if (guards.uniqueItems === true) {
       const firstSeen = /* @__PURE__ */ new Map();
       for (let i = 0; i < items.length; i++) {
-        const key = canonicalKey(items[i], /* @__PURE__ */ new Set());
-        if (key === null)
+        const key3 = canonicalKey(items[i], /* @__PURE__ */ new Set());
+        if (key3 === null)
           continue;
-        const first = firstSeen.get(key);
+        const first = firstSeen.get(key3);
         if (first === void 0) {
-          firstSeen.set(key, i);
+          firstSeen.set(key3, i);
           continue;
         }
         payload.issues.push({
@@ -19989,9 +19989,9 @@ function convertBaseSchema(schema, ctx) {
       const properties = schema.properties || {};
       const requiredSet = new Set(schema.required || []);
       const additionalSchema = typeof schema.additionalProperties === "object" ? convertSchema(schema.additionalProperties, ctx) : void 0;
-      for (const [key, propSchema] of Object.entries(properties)) {
+      for (const [key3, propSchema] of Object.entries(properties)) {
         const propZodSchema = convertSchema(propSchema, ctx);
-        assignProp(shape, key, requiredSet.has(key) ? propZodSchema : propZodSchema.optional());
+        assignProp(shape, key3, requiredSet.has(key3) ? propZodSchema : propZodSchema.optional());
       }
       if (schema.patternProperties) {
         const patternProps = schema.patternProperties;
@@ -20026,12 +20026,12 @@ function convertBaseSchema(schema, ctx) {
             if (!isPlainObject(payload.value))
               return;
             const unrecognized = [];
-            for (const key of Object.keys(payload.value)) {
-              if (propertyKeys.includes(key))
+            for (const key3 of Object.keys(payload.value)) {
+              if (propertyKeys.includes(key3))
                 continue;
-              if (patterns.some((regex) => regex.test(key)))
+              if (patterns.some((regex) => regex.test(key3)))
                 continue;
-              unrecognized.push(key);
+              unrecognized.push(key3);
             }
             if (unrecognized.length) {
               payload.issues.push({
@@ -20162,38 +20162,38 @@ function convertSchema(schema, ctx) {
   }
   const extraMeta = {};
   const coreMetadataKeys = ["$id", "id", "$comment", "$anchor", "$vocabulary", "$dynamicRef", "$dynamicAnchor"];
-  for (const key of coreMetadataKeys) {
-    if (key in schema) {
-      extraMeta[key] = schema[key];
+  for (const key3 of coreMetadataKeys) {
+    if (key3 in schema) {
+      extraMeta[key3] = schema[key3];
     }
   }
   const contentMetadataKeys = ["contentEncoding", "contentMediaType", "contentSchema"];
-  for (const key of contentMetadataKeys) {
-    if (key in schema) {
-      extraMeta[key] = schema[key];
+  for (const key3 of contentMetadataKeys) {
+    if (key3 in schema) {
+      extraMeta[key3] = schema[key3];
     }
   }
   if (schema.type === "object" && schema.$ref === void 0) {
     if (schema.propertyNames !== void 0 && !containsRef(schema.propertyNames)) {
       extraMeta.propertyNames = schema.propertyNames;
     }
-    for (const key of ["minProperties", "maxProperties"]) {
-      if (schema[key] !== void 0)
-        extraMeta[key] = schema[key];
+    for (const key3 of ["minProperties", "maxProperties"]) {
+      if (schema[key3] !== void 0)
+        extraMeta[key3] = schema[key3];
     }
   }
   if (schema.type === "array" && schema.$ref === void 0) {
     if (schema.contains !== void 0 && !containsRef(schema.contains)) {
       extraMeta.contains = schema.contains;
     }
-    for (const key of ["uniqueItems", "minContains", "maxContains"]) {
-      if (schema[key] !== void 0)
-        extraMeta[key] = schema[key];
+    for (const key3 of ["uniqueItems", "minContains", "maxContains"]) {
+      if (schema[key3] !== void 0)
+        extraMeta[key3] = schema[key3];
     }
   }
-  for (const key of Object.keys(schema)) {
-    if (!RECOGNIZED_KEYS.has(key)) {
-      assignProp(extraMeta, key, schema[key]);
+  for (const key3 of Object.keys(schema)) {
+    if (!RECOGNIZED_KEYS.has(key3)) {
+      assignProp(extraMeta, key3, schema[key3]);
     }
   }
   if (Object.keys(extraMeta).length > 0) {
@@ -20793,44 +20793,352 @@ async function consumeProbeStream(body, httpStatus = 200, contentType = "event-s
   }
 }
 
-// src/server/probe-transfer.ts
-var transferSchema = external_exports.object({
-  hostId: external_exports.string().regex(/^urn:uuid:[0-9a-f-]{36}$/),
-  clientId: external_exports.string().regex(/^oaiapp_[A-Za-z0-9_-]{1,200}$/),
+// src/server/chatgpt-oauth.ts
+var requiredScopes = [
+  "openid",
+  "resource.invoke",
+  "chatgpt.tokens.use.direct",
+  "offline_access"
+];
+var hostSchema = external_exports.string().regex(
+  /^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+);
+var clientSchema = external_exports.string().regex(/^oaiapp_[A-Za-z0-9_-]{1,200}$/);
+var secret = external_exports.string().min(1).max(32e3);
+var renewableSchema = external_exports.object({
+  hostId: hostSchema,
+  clientId: clientSchema,
   subject: external_exports.string().min(1).max(500),
-  accessToken: external_exports.string().min(1).max(32e3),
-  idToken: external_exports.string().min(1).max(32e3),
-  nonce: external_exports.string().min(32).max(200),
-  expiresAt: external_exports.number().int().positive()
+  accessToken: secret,
+  refreshToken: secret,
+  idToken: secret,
+  scopes: external_exports.array(external_exports.string().max(100)).max(30),
+  expiresAt: external_exports.number().int().positive(),
+  refreshExpiresAt: external_exports.number().int().positive(),
+  earliestRefreshAt: external_exports.number().int().nonnegative()
 }).strict();
-var codeSchema = external_exports.string().regex(/^[A-Za-z0-9_-]{43}$/);
-async function verifyTransfer(input2, expectedHost, fetcher = fetch, suppliedKeys) {
-  const data = transferSchema.parse(input2);
-  if (data.hostId !== expectedHost || data.expiresAt <= Date.now() || data.expiresAt > Date.now() + 21 * 6e4)
-    throw new ProbeError("REMOTE_PAIR");
+var SubscriptionError = class extends Error {
+  constructor(code) {
+    super(code);
+    this.code = code;
+  }
+  code;
+};
+var subscriptionMessages = {
+  NOT_CONNECTED: "Verbind eerst je ChatGPT-abonnement.",
+  REAUTH_REQUIRED: "De toestemming moet opnieuw worden gekoppeld via de lokale aanmeldhulp op je pc.",
+  BUSY: "De verbinding wordt al bijgewerkt. Probeer zo meteen opnieuw.",
+  RETRY_LATER: "OpenAI is tijdelijk niet bereikbaar of vraagt om te wachten. Je koppeling blijft bewaard; probeer later opnieuw.",
+  CLIENT_CONFIGURATION: "OpenAI accepteert de appregistratie niet. De configuratie moet worden gecontroleerd.",
+  INVALID_IDENTITY: "De identiteit of toestemming kon niet worden bevestigd. Er is niets gekoppeld.",
+  INVALID_PAIR: "Deze koppelcode is ongeldig, verlopen of al gebruikt. Maak in de app een nieuwe code.",
+  INVALID_DESTINATION: "Gebruik het exacte HTTPS-hoofdadres van je eigen Render-app.",
+  TOKEN_RESPONSE: "OpenAI gaf geen bruikbare vernieuwbare toestemming terug. Koppel opnieuw met toestemming voor blijvende toegang.",
+  CONNECTION_CHANGED: "De koppeling is intussen gewijzigd. Ververs de pagina.",
+  CONFIRMATION: "Bevestig eerst de toestemming voor deze handeling.",
+  INVALID_MODEL: "Haal je modellen opnieuw op en kies een model uit jouw account."
+};
+function subscriptionMessage(error62) {
+  return error62 instanceof SubscriptionError && subscriptionMessages[error62.code] ? subscriptionMessages[error62.code] : "De koppeling kon niet worden bijgewerkt. Controleer de installatie en probeer opnieuw. Geheimen worden niet in meldingen getoond.";
+}
+async function boundedJson(response) {
+  if (!response.body) throw new SubscriptionError("TOKEN_RESPONSE");
+  const reader = response.body.getReader();
+  const chunks = [];
+  let length = 0;
+  try {
+    while (true) {
+      const part = await reader.read();
+      if (part.done) break;
+      length += part.value.byteLength;
+      if (length > 128e3) throw new SubscriptionError("TOKEN_RESPONSE");
+      chunks.push(part.value);
+    }
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch {
+    throw new SubscriptionError("TOKEN_RESPONSE");
+  } finally {
+    await reader.cancel().catch(() => {
+    });
+    reader.releaseLock();
+  }
+}
+async function tokenRequest(body, fetcher) {
+  let response;
+  try {
+    response = await fetcher(`${issuer}/api/accounts/oauth/token`, {
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(3e4),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body
+    });
+  } catch {
+    throw new SubscriptionError("RETRY_LATER");
+  }
+  const raw = await boundedJson(response).catch(() => null);
+  if (!response.ok) {
+    const code = typeof raw?.error === "string" ? raw.error : raw?.error?.code;
+    if ([
+      "invalid_grant",
+      "invalid_refresh_token",
+      "token_expired",
+      "refresh_token_expired",
+      "refresh_token_invalidated",
+      "refresh_token_reused"
+    ].includes(code))
+      throw new SubscriptionError("REAUTH_REQUIRED");
+    if (code === "invalid_client")
+      throw new SubscriptionError("CLIENT_CONFIGURATION");
+    throw new SubscriptionError(
+      response.status === 429 || response.status >= 500 ? "RETRY_LATER" : "TOKEN_RESPONSE"
+    );
+  }
+  const parsed = external_exports.object({
+    access_token: secret,
+    refresh_token: secret,
+    id_token: secret.optional(),
+    token_type: external_exports.string(),
+    expires_in: external_exports.number().int().positive().max(86400),
+    scope: external_exports.string().max(3e3).optional(),
+    earliest_refresh_at: external_exports.union([external_exports.number().int().nonnegative(), external_exports.string().max(80)]).optional()
+  }).safeParse(raw);
+  if (!parsed.success || parsed.data.token_type.toLowerCase() !== "bearer")
+    throw new SubscriptionError("TOKEN_RESPONSE");
+  return parsed.data;
+}
+async function verifyIdentity(idToken, clientId, fetcher, keys, nonce, subject) {
   try {
     const { payload } = await jwtVerify(
-      data.idToken,
-      suppliedKeys ?? await openAiKeys(fetcher),
+      idToken,
+      keys ?? await openAiKeys(fetcher),
       {
         issuer,
-        audience: data.clientId,
+        audience: clientId,
         algorithms: ["RS256", "ES256"],
-        requiredClaims: ["sub", "exp", "iat", "nonce"],
+        requiredClaims: ["sub", "exp", "iat"],
         clockTolerance: 5
       }
     );
-    if (payload.sub !== data.subject || payload.nonce !== data.nonce)
-      throw new Error("IDENTITY");
+    if (!payload.sub || nonce !== void 0 && payload.nonce !== nonce || subject && payload.sub !== subject)
+      throw new Error();
+    return payload.sub;
   } catch {
-    throw new ProbeError("IDENTITY");
+    throw new SubscriptionError("INVALID_IDENTITY");
   }
-  return {
-    accessToken: data.accessToken,
-    subject: data.subject,
-    clientId: data.clientId,
-    expiresAt: Math.min(data.expiresAt, Date.now() + 10 * 6e4)
+}
+async function verifyAccess(credential, fetcher = fetch, keys) {
+  try {
+    const { payload } = await jwtVerify(
+      credential.accessToken,
+      keys ?? await openAiKeys(fetcher),
+      {
+        issuer,
+        audience: resource,
+        algorithms: ["RS256", "ES256"],
+        requiredClaims: ["sub", "exp", "iat", "client_id", "scope"],
+        clockTolerance: 5
+      }
+    );
+    const scopes = typeof payload.scope === "string" ? payload.scope.split(/\s+/) : [];
+    if (payload.sub !== credential.subject || payload.client_id !== credential.clientId || !requiredScopes.every((s) => scopes.includes(s)) || !requiredScopes.every((s) => credential.scopes.includes(s)))
+      throw new Error();
+    return Math.min(credential.expiresAt, payload.exp * 1e3);
+  } catch {
+    throw new SubscriptionError("INVALID_IDENTITY");
+  }
+}
+function nextCredential(raw, base) {
+  const now = Date.now();
+  const scopes = raw.scope === void 0 ? base.scopes : raw.scope.split(/\s+/).filter(Boolean);
+  if (!requiredScopes.every((s) => scopes.includes(s)))
+    throw new SubscriptionError("INVALID_IDENTITY");
+  const earliest = raw.earliest_refresh_at;
+  const earliestRefreshAt = earliest === void 0 ? 0 : typeof earliest === "number" ? earliest * 1e3 : Date.parse(earliest);
+  if (!Number.isSafeInteger(earliestRefreshAt) || earliestRefreshAt < 0)
+    throw new SubscriptionError("TOKEN_RESPONSE");
+  return renewableSchema.parse({
+    ...base,
+    accessToken: raw.access_token,
+    refreshToken: raw.refresh_token,
+    idToken: raw.id_token ?? base.idToken,
+    scopes,
+    expiresAt: now + raw.expires_in * 1e3,
+    refreshExpiresAt: now + 30 * 864e5,
+    earliestRefreshAt
+  });
+}
+async function refreshCredential(old, fetcher = fetch, keys) {
+  if (old.refreshExpiresAt <= Date.now())
+    throw new SubscriptionError("REAUTH_REQUIRED");
+  if (old.earliestRefreshAt > Date.now())
+    throw new SubscriptionError("RETRY_LATER");
+  const raw = await tokenRequest(
+    new URLSearchParams({
+      grant_type: "refresh_token",
+      client_id: old.clientId,
+      refresh_token: old.refreshToken,
+      resource
+    }),
+    fetcher
+  );
+  if (raw.id_token)
+    await verifyIdentity(
+      raw.id_token,
+      old.clientId,
+      fetcher,
+      keys,
+      void 0,
+      old.subject
+    );
+  const next = nextCredential(raw, old);
+  next.expiresAt = await verifyAccess(next, fetcher, keys);
+  return next;
+}
+async function verifyRenewableImport(input2, hostId, fetcher = fetch, keys) {
+  const { credential, nonce } = external_exports.object({ credential: renewableSchema, nonce: external_exports.string().min(32).max(200) }).strict().parse(input2);
+  if (credential.hostId !== hostId || credential.expiresAt <= Date.now() || credential.expiresAt > Date.now() + 864e5 || credential.refreshExpiresAt > Date.now() + 30 * 864e5 + 6e4 || credential.refreshExpiresAt <= Date.now())
+    throw new SubscriptionError("INVALID_IDENTITY");
+  await verifyIdentity(
+    credential.idToken,
+    credential.clientId,
+    fetcher,
+    keys,
+    nonce,
+    credential.subject
+  );
+  credential.expiresAt = await verifyAccess(credential, fetcher, keys);
+  return credential;
+}
+async function revokeCredential(credential, fetcher = fetch) {
+  try {
+    const discovery = await fetcher(
+      `${issuer}/.well-known/openid-configuration`,
+      { redirect: "error", signal: AbortSignal.timeout(15e3) }
+    );
+    if (!discovery.ok) return false;
+    const metadata = await boundedJson(discovery);
+    const url2 = new URL(metadata.revocation_endpoint);
+    if (metadata.issuer !== issuer || url2.origin !== issuer || url2.username || url2.password || url2.hash || url2.search)
+      return false;
+    const response = await fetcher(url2.toString(), {
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(15e3),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        token: credential.refreshToken,
+        token_type_hint: "refresh_token",
+        client_id: credential.clientId
+      })
+    });
+    await response.body?.cancel();
+    return response.status === 200;
+  } catch {
+    return false;
+  }
+}
+
+// src/server/chatgpt-service.ts
+function subscriptionActionError(error62) {
+  return error62 instanceof ProbeError ? probeErrorMessage(error62) : subscriptionMessage(error62);
+}
+var ChatGptService = class {
+  constructor(repo, fetcher = fetch) {
+    this.repo = repo;
+    this.fetcher = fetcher;
+  }
+  repo;
+  fetcher;
+  async models() {
+    const { credential } = await this.repo.access(
+      (old) => refreshCredential(old, this.fetcher)
+    );
+    return listProbeModels(credential, this.fetcher);
+  }
+  async test(model) {
+    await this.repo.claimTest();
+    const { credential, version: version2 } = await this.repo.access(
+      (old) => refreshCredential(old, this.fetcher)
+    );
+    const models = await listProbeModels(credential, this.fetcher);
+    if (!models.some((item) => item.slug === model))
+      throw new SubscriptionError("INVALID_MODEL");
+    await this.repo.assertCurrent(version2);
+    await runProbe(credential, model, this.fetcher);
+    await this.repo.finishTest(version2);
+  }
+  async disconnect() {
+    return this.repo.disconnect(
+      (credential) => revokeCredential(credential, this.fetcher)
+    );
+  }
+};
+
+// src/server/chatgpt-transfer.ts
+var pairSchema = external_exports.object({
+  app: external_exports.literal("the-ride-coach"),
+  protocol: external_exports.literal(2),
+  hostId: hostSchema,
+  expiresAt: external_exports.number().int().positive(),
+  registration: external_exports.object({ clientId: clientSchema, subject: external_exports.string().min(1).max(500) }).strict().optional()
+}).strict();
+async function readLimitedJson(request, limit = 128e3) {
+  if (!request.body) throw new SubscriptionError("INVALID_PAIR");
+  const reader = request.body.getReader();
+  const chunks = [];
+  let bytes = 0;
+  try {
+    while (true) {
+      const part = await reader.read();
+      if (part.done) break;
+      bytes += part.value.byteLength;
+      if (bytes > limit) throw new Error();
+      chunks.push(part.value);
+    }
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch {
+    throw new SubscriptionError("INVALID_PAIR");
+  } finally {
+    await reader.cancel().catch(() => {
+    });
+    reader.releaseLock();
+  }
+}
+async function handleSubscriptionTransfer(request, operation, repo, fetcher = fetch, keys) {
+  const headers = {
+    "Cache-Control": "no-store",
+    "Referrer-Policy": "no-referrer",
+    "X-Content-Type-Options": "nosniff"
   };
+  try {
+    if (request.method !== "POST" || request.headers.has("origin") || request.headers.get("content-type")?.split(";")[0] !== "application/json")
+      throw new SubscriptionError("INVALID_PAIR");
+    const match = /^Bearer ([A-Za-z0-9_-]{43})$/.exec(
+      request.headers.get("authorization") ?? ""
+    );
+    if (!match) throw new SubscriptionError("INVALID_PAIR");
+    if (operation === "pair-info") {
+      await readLimitedJson(request, 1024);
+      return Response.json(await repo.pairInfo(match[1]), { headers });
+    }
+    const pair = await repo.consumePair(match[1]);
+    const credential = await verifyRenewableImport(
+      await readLimitedJson(request),
+      pair.hostId,
+      fetcher,
+      keys
+    );
+    if (pair.registration && (credential.clientId !== pair.registration.clientId || credential.subject !== pair.registration.subject))
+      throw new SubscriptionError("INVALID_IDENTITY");
+    await repo.install(credential, pair.version);
+    return Response.json({ ok: true }, { headers });
+  } catch {
+    return Response.json(
+      { error: "PAIR_NOT_ACCEPTED" },
+      { status: 400, headers }
+    );
+  }
 }
 
 // src/server/probe-http-utils.ts
@@ -20854,41 +21162,41 @@ function cookieValue(req, name) {
 }
 var probeStyle = `*{box-sizing:border-box}body{margin:0;background:#f4f6f2;color:#16201c;font:16px/1.6 Arial,sans-serif}main{max-width:780px;margin:auto;padding:38px 20px}h1{font-size:clamp(29px,6vw,44px);line-height:1.1;letter-spacing:-1px}h2{font-size:21px}.card{background:white;border:1px solid #e5e9e2;border-radius:14px;padding:24px;margin:20px 0}.eyebrow{font-size:11px;letter-spacing:2px;font-weight:bold}.tag{background:#e9efdf;padding:6px 10px;border-radius:5px;font-size:12px;font-weight:bold}.notice{background:#e9efdf;padding:18px;border-radius:8px}button{border:0;background:#16201c;color:white;padding:14px 20px;border-radius:6px;font:inherit;font-weight:bold;cursor:pointer}.primary{background:#c7f247;color:#16201c}button:disabled{opacity:.5;cursor:not-allowed}a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #578700;outline-offset:3px}label{display:block;margin:16px 0}select,input:not([type=checkbox]){font:inherit;max-width:100%;width:100%;padding:10px;border:1px solid #bbb;border-radius:6px}small{color:#657069}code{overflow-wrap:anywhere}.check{display:flex;align-items:flex-start;gap:10px}.check input{margin-top:6px;min-width:18px;height:18px}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#36591c}`;
 
-// src/server/online-probe-http.ts
+// src/server/online-connect-http.ts
 var random = () => randomBytes(32).toString("base64url");
 var digest = (value) => createHash("sha256").update(value).digest();
-var equal = (a, b) => timingSafeEqual(digest(a), digest(b));
-function createOnlineProbeServer(options) {
+function createOnlineConnectServer(options) {
   const parsed = new URL(options.origin);
-  if (parsed.origin !== options.origin || parsed.username || parsed.password || parsed.protocol !== "https:" && !(options.allowHttpForTests && parsed.hostname === "127.0.0.1"))
-    throw new Error("HTTPS_ORIGIN_REQUIRED");
-  if (options.password.length < 24 || options.password.length > 256 || !/^urn:uuid:[0-9a-f-]{36}$/.test(options.hostId))
-    throw new Error("SECURE_CONFIG_REQUIRED");
-  const fetcher = options.fetcher ?? fetch;
+  if (options.origin !== approvedChatGptOrigin && !(options.allowHttpForTests && parsed.origin === options.origin && parsed.hostname === "127.0.0.1" && parsed.protocol === "http:"))
+    throw new Error("APPROVED_HTTPS_ORIGIN_REQUIRED");
+  if (options.password.length < 24 || options.password.length > 256)
+    throw new Error("SECURE_PASSWORD_REQUIRED");
+  const cookieName = parsed.protocol === "https:" ? "__Host-ride-connect" : "ride-connect-test";
+  const secure = parsed.protocol === "https:" ? "; Secure" : "";
   const browsers = /* @__PURE__ */ new Map();
-  const cookieName = parsed.protocol === "https:" ? "__Host-ride-online" : "ride-online-test";
   const runtime = randomBytes(8).toString("hex");
-  let active;
-  let pairing;
-  let version2 = 0, busy = false, failedLogins = 0, blockedUntil = 0;
-  let lastResult = "Nog geen online AI-test uitgevoerd.";
+  const service = new ChatGptService(options.repo, options.fetcher);
+  let failures = 0, blockedUntil = 0;
   const csrf = (s) => `<input type="hidden" name="csrf" value="${s.csrf}">`;
-  const frame = (contents) => `<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Online ChatGPT-proef \xB7 The Ride</title><style>${probeStyle}</style></head><body><main><p class="eyebrow">THE RIDE / ONLINE BEWIJSPROEF</p><h1>Je coach, zonder je pc.</h1>${contents}<p><small>Proces ${runtime}. Alleen de vaste testzin; geen Garmin- of gezondheidsgegevens. Een herstart of slaapstand wist de koppeling. Dit is nog geen permanente coach of bewezen altijd beschikbare hosting.</small></p></main></body></html>`;
-  const page = (s) => frame(
-    !s.authenticated ? `
-    <section class="card"><h2>Open je priv\xE9proef</h2><p>Gebruik het toegangswachtwoord uit de environment-instellingen van je eigen Render-dienst. Dit is niet je ChatGPT-wachtwoord.</p><form method="post" action="/login">${csrf(s)}<label>Toegangswachtwoord<input type="password" name="password" autocomplete="current-password" maxlength="256" required></label><button class="primary">Proef openen \u2192</button></form></section><p class="notice" role="status">${htmlEscape(s.message)}</p>
-  ` : `<p class="notice" role="status">${htmlEscape(s.message)}</p>
-    <section class="card"><span class="tag">${active ? "TIJDELIJK VERBONDEN" : "NOG NIET VERBONDEN"}</span><h2>1 \xB7 Geef deze server tijdelijk toestemming</h2>
-    <p>Maak een eenmalige koppelcode. Open daarna op je pc de lokale proef op <code>http://127.0.0.1:4319</code>, kies \u2018Online proef koppelen\u2019 en vul dit serveradres en de code in. Je logt bij OpenAI op je pc in; de toestemming gaat na jouw bevestiging rechtstreeks via HTTPS naar deze server.</p>
-    <form method="post" action="/pair">${csrf(s)}<button ${busy ? "disabled" : ""}>Nieuwe koppelcode maken</button></form>
-    ${pairing ? `<label>Jouw serveradres<input value="${htmlEscape(options.origin)}" readonly></label><label>Koppelcode \xB7 vijf minuten geldig<input value="${pairing.code}" readonly autocomplete="off"></label><p><small>De code is een tijdelijk toegangsbewijs. Deel hem niet in de chat. Een nieuwe code vervangt de vorige.</small></p>` : ""}
-    ${active ? `<p>De tijdelijke AI-toestemming verloopt om ${new Date(active.session.expiresAt).toISOString().slice(11, 19)} UTC. Nog maximaal ${Math.max(0, 3 - active.attempts)} handmatige testaanvragen.</p>` : ""}</section>
-    <section class="card"><h2>2 \xB7 Test op je smartphone met je pc uit</h2><ol><li>Bewaar deze HTTPS-link op je smartphone en open hem daar.</li><li>Log zo nodig in met hetzelfde Render-toegangswachtwoord.</li><li>Schakel wifi op de telefoon uit en gebruik mobiel internet.</li><li>Schakel je pc volledig uit. Voer binnen tien minuten na het koppelen \xE9\xE9n test uit.</li></ol>
-    <p>De vaste inhoud is <code>Reply with exactly: The Ride connection works.</code> De aanvraag gebruikt je abonnementsruimte; er is geen API-key of automatische herhaling.</p>
-    <form method="post" action="/probe">${csrf(s)}<label>Model<select name="model" ${!active ? "disabled" : ""}>${active?.models.map((m) => `<option value="${htmlEscape(m.slug)}">${htmlEscape(m.name)}</option>`).join("") ?? ""}</select></label><label class="check"><input type="checkbox" name="consent" value="yes" required ${!active ? "disabled" : ""}><span>Voer \xE9\xE9n testzin uit via mijn ChatGPT-abonnement.</span></label><label class="check"><input type="checkbox" name="pcOff" value="yes"><span>Mijn pc staat uit en ik gebruik mobiel internet. Dit is mijn eigen bevestiging; de server kan mijn pc niet controleren.</span></label><button class="primary" ${!active || active.attempts >= 3 || busy ? "disabled" : ""}>Test op de online server \u2192</button></form><p class="notice">${htmlEscape(lastResult)}</p></section>
-    <section class="card"><h2>3 \xB7 Ruim de tijdelijke koppeling op</h2><form method="post" action="/clear">${csrf(s)}<label class="check"><input type="checkbox" name="confirm" value="yes" required><span>Verwijder de tijdelijke ChatGPT-toestemming uit dit proces.</span></label><button>Online testsessie wissen</button></form><p><small>Deze knop wist het lokale geheugen van de server; trek de app-toestemming desgewenst ook in bij ChatGPT.</small></p><form method="post" action="/logout">${csrf(s)}<button>Alleen deze browser uitloggen</button></form></section>`
-  );
-  const server2 = createServer(async (req, res) => {
+  const frame = (body) => `<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Blijvende ChatGPT-koppeling \xB7 The Ride</title><style>${probeStyle}</style></head><body><main><p class="eyebrow">THE RIDE / BLIJVENDE KOPPELING</p><h1>Je coach, ook morgen verbonden.</h1>${body}<p><small>Proces ${runtime}. Alleen de vaste testzin; de volledige sportcoach is nog in ontwikkeling.</small></p></main></body></html>`;
+  const page = async (s) => {
+    if (!s.authenticated)
+      return frame(
+        `<section class="card"><h2>Open je priv\xE9omgeving</h2><p>Gebruik PROBE_ACCESS_PASSWORD uit de Environment-instellingen van je eigen Render-service.</p><form action="/login" method="post">${csrf(s)}<label>Toegangswachtwoord<input type="password" name="password" required maxlength="256" autocomplete="current-password"></label><button class="primary">Open mijn koppeling \u2192</button></form></section><p class="notice" role="status">${htmlEscape(s.message)}</p>`
+      );
+    const status = await options.repo.status();
+    if (s.pair && s.pair.expiresAt <= Date.now()) s.pair = void 0;
+    const labels = {
+      active: "TOESTEMMING OPGESLAGEN",
+      disconnected: "NOG NIET VERBONDEN",
+      refreshing: "WORDT VERNIEUWD",
+      reauth_required: "OPNIEUW AANMELDEN"
+    };
+    return frame(
+      `<p class="notice" role="status">${htmlEscape(s.message)}</p><section class="card"><span class="tag">${labels[status.state]}</span><h2>1 \xB7 Verbind jouw ChatGPT-abonnement</h2><p>De toestemming wordt versleuteld in je eigen database bewaard. De server vernieuwt geldige toegang wanneer je hem gebruikt. Slapen of herstarten van Render wist de opgeslagen koppeling niet.</p><ol><li>Maak hieronder een koppelcode.</li><li>Start op je pc <code>npm run chatgpt:connect</code> en open <code>http://127.0.0.1:4320</code>.</li><li>Plak daar de code, kies Continue with ChatGPT en bekijk de toestemming.</li><li>Keer terug en ververs deze pagina.</li></ol><form action="/pair" method="post">${csrf(s)}<label class="check"><input type="checkbox" name="consent" value="yes" required><span>Mijn vernieuwbare ChatGPT-toestemming mag op deze eigen server worden bewaard.</span></label><button ${s.busy ? "disabled" : ""}>Nieuwe koppelcode maken</button></form>${s.pair ? `<label>Koppelcode \xB7 vijf minuten geldig<input value="${s.pair.code}" readonly autocomplete="off"></label><p><small>Plak alleen in de lokale aanmeldhulp. Deel de code niet in de chat.</small></p>` : ""}<p><small>Na intrekken of definitief verlopen toestemming is opnieuw aanmelden via de pc nodig. De eerdere tienminutenproef op poort 4319 gebruikt een andere koppeling.</small></p></section><section class="card"><h2>2 \xB7 Test op je smartphone</h2><p>Haal eerst je modellen op. Elke AI-test is \xE9\xE9n handmatige aanvraag binnen je ChatGPT-gebruik, met uitsluitend de vaste testzin.</p><form action="/models" method="post">${csrf(s)}<button ${status.state !== "active" || s.busy ? "disabled" : ""}>Mijn modellen ophalen</button></form>${s.models.length && status.state === "active" ? `<form action="/test" method="post">${csrf(s)}<label>Model<select name="model">${s.models.map((m) => `<option value="${htmlEscape(m.slug)}">${htmlEscape(m.name)}</option>`).join("")}</select></label><label class="check"><input type="checkbox" name="consent" value="yes" required><span>Voer \xE9\xE9n testzin uit via mijn abonnement.</span></label><label class="check"><input type="checkbox" name="pcOff" value="yes"><span>Mijn pc staat uit en ik gebruik mobiel internet. Dit is mijn eigen bevestiging.</span></label><button class="primary" ${s.busy ? "disabled" : ""}>Test mijn opgeslagen koppeling \u2192</button></form>` : ""}${status.checkedAt ? `<p>Laatste volledig afgeronde test: ${htmlEscape(new Date(status.checkedAt).toISOString())}.</p>` : ""}<p><small>Voor de herstartproef: herstart deze bestaande service in Render, log opnieuw in op je smartphone en test opnieuw. Een nieuw proces-ID toont de herstart; de opgeslagen toestemming hoort beschikbaar te blijven.</small></p></section><section class="card"><h2>3 \xB7 Gebruik en loskoppelen</h2><p><a href="https://chatgpt.com/#settings" target="_blank" rel="noreferrer">Bekijk gebruik en apprechten in ChatGPT \u2197</a></p><form action="/disconnect" method="post">${csrf(s)}<label class="check"><input type="checkbox" name="consent" value="yes" required><span>Verwijder de opgeslagen toestemming en vraag intrekking bij OpenAI.</span></label><button ${s.busy ? "disabled" : ""}>ChatGPT loskoppelen</button></form><form action="/logout" method="post">${csrf(s)}<button>Alleen deze browser uitloggen</button></form></section>`
+    );
+  };
+  const server = createServer(async (req, res) => {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("Referrer-Policy", "same-origin");
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -20896,14 +21204,7 @@ function createOnlineProbeServer(options) {
       "Content-Security-Policy",
       "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
     );
-    if (parsed.protocol === "https:")
-      res.setHeader("Strict-Transport-Security", "max-age=31536000");
-    const json2 = (status, data) => {
-      res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify(data));
-    };
-    const redirect = () => {
-      res.writeHead(303, { Location: "/" }).end();
-    };
+    if (secure) res.setHeader("Strict-Transport-Security", "max-age=31536000");
     let url2;
     try {
       url2 = new URL(req.url ?? "/", options.origin);
@@ -20912,96 +21213,66 @@ function createOnlineProbeServer(options) {
       return;
     }
     if (req.method === "GET" && url2.pathname === "/healthz") {
-      json2(200, { ok: true });
+      res.writeHead(200, { "Content-Type": "application/json" }).end('{"ok":true}');
       return;
     }
     if (req.headers.host !== parsed.host || url2.origin !== options.origin) {
       res.writeHead(403).end();
       return;
     }
-    for (const [key, s] of browsers)
-      if (s.expiresAt <= Date.now()) browsers.delete(key);
-    if (active && active.session.expiresAt <= Date.now()) {
-      active = void 0;
-      version2++;
-      lastResult = "De tijdelijke toestemming is verlopen. Koppel opnieuw via je pc.";
-    }
-    if (pairing && pairing.expiresAt <= Date.now()) pairing = void 0;
+    for (const [key3, s2] of browsers)
+      if (s2.expiresAt <= Date.now()) browsers.delete(key3);
     if (blockedUntil && blockedUntil <= Date.now()) {
+      failures = 0;
       blockedUntil = 0;
-      failedLogins = 0;
     }
+    let s;
+    const redirect = () => res.writeHead(303, { Location: "/" }).end();
     try {
-      if (url2.pathname.startsWith("/_probe/")) {
-        if (req.method !== "POST" || !req.headers["content-type"]?.startsWith("application/json")) {
-          json2(405, { ok: false });
+      if (["/api/chatgpt/pair-info", "/api/chatgpt/import"].includes(url2.pathname)) {
+        if (req.method !== "POST") {
+          res.writeHead(405).end();
           return;
         }
-        const presented = req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.slice(7) : "";
-        if (!pairing || !equal(presented, pairing.code)) {
-          json2(403, { ok: false });
-          return;
-        }
-        if (url2.pathname === "/_probe/pair-info") {
-          await readBody(req, 200);
-          json2(200, {
-            app: "the-ride-online-probe",
-            protocol: 1,
-            hostId: options.hostId,
-            expiresAt: pairing.expiresAt
-          });
-          return;
-        }
-        if (url2.pathname === "/_probe/import") {
-          if (busy) {
-            json2(409, { ok: false });
-            return;
-          }
-          pairing = void 0;
-          active = void 0;
-          busy = true;
-          const importedAtVersion = ++version2;
-          try {
-            const input2 = JSON.parse(await readBody(req, 1e5));
-            const session = await verifyTransfer(
-              input2,
-              options.hostId,
-              fetcher
-            );
-            const models = await listProbeModels(session, fetcher);
-            if (version2 !== importedAtVersion) {
-              json2(409, { ok: false });
-              return;
-            }
-            active = { session, models, attempts: 0, revision: version2 };
-            lastResult = "Toestemming ontvangen. Je kunt nu de vaste testzin vanaf de online server aanvragen.";
-            json2(200, { ok: true, expiresAt: session.expiresAt });
-          } finally {
-            busy = false;
-          }
-          return;
-        }
-        json2(404, { ok: false });
+        const headers = new Headers();
+        for (const name of ["authorization", "content-type", "origin"])
+          if (typeof req.headers[name] === "string")
+            headers.set(name, req.headers[name]);
+        const request = new Request(url2, {
+          method: "POST",
+          headers,
+          body: await readBody(req, 128e3)
+        });
+        const response = await handleSubscriptionTransfer(
+          request,
+          url2.pathname.endsWith("pair-info") ? "pair-info" : "import",
+          options.repo,
+          options.fetcher
+        );
+        response.headers.forEach((value, name) => res.setHeader(name, value));
+        res.writeHead(response.status).end(await response.text());
         return;
       }
       let sid = cookieValue(req, cookieName);
-      let s = sid ? browsers.get(sid) : void 0;
+      s = sid ? browsers.get(sid) : void 0;
       if (!s && req.method === "GET" && url2.pathname === "/") {
         if (browsers.size >= 50) {
-          res.writeHead(429).end("Probeer later opnieuw.");
+          res.writeHead(429).end();
           return;
         }
         sid = random();
         s = {
           csrf: random(),
-          authenticated: false,
           expiresAt: Date.now() + 20 * 6e4,
-          message: "Alleen voor de eigenaar van deze proef."
+          authenticated: false,
+          message: "Alleen voor de eigenaar van deze server.",
+          models: [],
+          busy: false
         };
         browsers.set(sid, s);
         res.setHeader(
           "Set-Cookie",
-          `${cookieName}=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=1200${parsed.protocol === "https:" ? "; Secure" : ""}`
+          `${cookieName}=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=1200${secure}`
         );
       }
       if (!s) {
@@ -21010,18 +21281,16 @@ function createOnlineProbeServer(options) {
       }
       if (req.method === "GET" && url2.pathname === "/") {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        res.end(page(s));
+        res.end(await page(s));
         return;
       }
-      if (req.method !== "POST" || req.headers.origin !== options.origin || !req.headers["content-type"]?.startsWith(
-        "application/x-www-form-urlencoded"
-      )) {
+      if (req.method !== "POST" || req.headers.origin !== options.origin || req.headers["content-type"]?.split(";")[0] !== "application/x-www-form-urlencoded") {
         res.writeHead(403).end("Ongeldige herkomst.");
         return;
       }
       const form = new URLSearchParams(await readBody(req, 4096));
       if (form.get("csrf") !== s.csrf) {
-        res.writeHead(403).end("Ongeldige testsessie.");
+        res.writeHead(403).end();
         return;
       }
       if (url2.pathname === "/login") {
@@ -21030,142 +21299,478 @@ function createOnlineProbeServer(options) {
           redirect();
           return;
         }
-        const password2 = form.get("password") ?? "";
-        if (password2.length > 256 || !equal(password2, options.password)) {
-          failedLogins++;
-          if (failedLogins >= 10) blockedUntil = Date.now() + 5 * 6e4;
+        const password = form.get("password") ?? "";
+        if (password.length > 256 || !timingSafeEqual(digest(password), digest(options.password))) {
+          if (++failures >= 10) blockedUntil = Date.now() + 5 * 6e4;
           s.message = "Toegangswachtwoord niet geaccepteerd.";
           redirect();
           return;
         }
-        failedLogins = 0;
+        failures = 0;
         browsers.delete(sid);
         sid = random();
-        s.authenticated = true;
         s.csrf = random();
+        s.authenticated = true;
         s.expiresAt = Date.now() + 20 * 6e4;
+        s.message = "Je priv\xE9omgeving is geopend. De database bewaart je gekoppelde toestemming.";
         browsers.set(sid, s);
         res.setHeader(
           "Set-Cookie",
-          `${cookieName}=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=1200${parsed.protocol === "https:" ? "; Secure" : ""}`
+          `${cookieName}=${sid}; Path=/; HttpOnly; SameSite=Strict; Max-Age=1200${secure}`
         );
-        s.message = "Priv\xE9proef geopend. De tijdelijke koppeling werkt ook in je andere browser na inloggen met hetzelfde toegangswachtwoord.";
         redirect();
         return;
       }
       if (!s.authenticated) {
-        res.writeHead(401).end("Log eerst in.");
+        res.writeHead(401).end();
         return;
       }
       if (url2.pathname === "/logout") {
         browsers.delete(sid);
+        s.pair = void 0;
+        s.models = [];
         res.setHeader(
           "Set-Cookie",
-          `${cookieName}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${parsed.protocol === "https:" ? "; Secure" : ""}`
+          `${cookieName}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${secure}`
         );
         redirect();
         return;
       }
-      if (url2.pathname === "/clear") {
-        if (form.get("confirm") !== "yes") {
-          s.message = "Bevestig eerst het wissen.";
-          redirect();
-          return;
-        }
-        version2++;
-        active = void 0;
-        pairing = void 0;
-        lastResult = "Tijdelijke toestemming gewist.";
-        s.message = lastResult;
+      if (s.busy) {
+        s.message = "Er is al een handeling actief. Wacht even.";
         redirect();
         return;
       }
-      if (busy) {
-        s.message = "Er loopt al een aanvraag. Wacht op het resultaat.";
+      if (["/pair", "/test", "/disconnect"].includes(url2.pathname) && form.get("consent") !== "yes") {
+        s.message = "Bevestig eerst de toestemming voor deze handeling.";
         redirect();
         return;
       }
+      s.busy = true;
       if (url2.pathname === "/pair") {
-        pairing = { code: random(), expiresAt: Date.now() + 5 * 6e4 };
-        s.message = "Koppelcode gemaakt. Gebruik deze binnen vijf minuten op de lokale proefpagina van je pc.";
-        redirect();
-        return;
-      }
-      if (url2.pathname === "/probe") {
-        if (!active || active.attempts >= 3 || form.get("consent") !== "yes") {
-          s.message = "Koppel eerst een geldige toestemming en bevestig \xE9\xE9n testaanvraag.";
-          redirect();
-          return;
-        }
+        s.pair = await options.repo.createPair();
+        s.message = "Koppelcode gemaakt. Gebruik hem binnen vijf minuten in de lokale aanmeldhulp.";
+      } else if (url2.pathname === "/models") {
+        s.models = await service.models();
+        s.message = "Modellen opgehaald; dit is nog geen geslaagde AI-test.";
+      } else if (url2.pathname === "/test") {
         const model = form.get("model");
-        if (!active.models.some((m) => m.slug === model)) {
-          s.message = "Kies een model uit deze koppeling.";
-          redirect();
-          return;
-        }
-        const current = active;
-        busy = true;
-        try {
-          if (current.session.lastProbeAt && Date.now() - current.session.lastProbeAt < 6e4) {
-            s.message = "Wacht \xE9\xE9n minuut voor de volgende test.";
-            redirect();
-            return;
-          }
-          current.attempts++;
-          await runProbe(current.session, model, fetcher);
-          if (active !== current || version2 !== current.revision) {
-            s.message = "De koppeling is tijdens de test gewist. Het resultaat is niet meer actief.";
-            redirect();
-            return;
-          }
-          lastResult = `ONLINE TEST GESLAAGD \xB7 The Ride connection works. \xB7 Proces ${runtime} \xB7 ${(/* @__PURE__ */ new Date()).toISOString()}${form.get("pcOff") === "yes" ? " \xB7 Jij bevestigde: pc uit en mobiel internet." : " \xB7 Pc-uitproef nog niet door jou bevestigd."}`;
-          s.message = lastResult;
-        } catch (error62) {
-          s.message = probeErrorMessage(error62);
-          lastResult = s.message;
-        } finally {
-          busy = false;
-        }
-        redirect();
+        if (!s.models.some((m) => m.slug === model))
+          throw new Error("INVALID_MODEL");
+        await service.test(String(model));
+        s.message = `ONLINE TEST GESLAAGD \xB7 The Ride connection works. \xB7 Opgeslagen toestemming \xB7 Proces ${runtime} \xB7 ${(/* @__PURE__ */ new Date()).toISOString()}${form.get("pcOff") === "yes" ? " \xB7 Jij bevestigde: pc uit en mobiel internet." : ""}`;
+      } else if (url2.pathname === "/disconnect") {
+        const revoked = await service.disconnect();
+        s.models = [];
+        s.pair = void 0;
+        s.message = revoked ? "Tokens verwijderd; OpenAI heeft de intrekking geaccepteerd." : "Tokens verwijderd. Intrekking bij OpenAI kon niet worden bevestigd; trek de apprechten ook in via ChatGPT-instellingen.";
+      } else {
+        s.busy = false;
+        res.writeHead(404).end();
         return;
       }
-      res.writeHead(404).end();
+      s.busy = false;
+      redirect();
     } catch (error62) {
-      json2(400, {
-        ok: false,
-        error: error62 instanceof ProbeError ? error62.code : "PROBE_REQUEST_REJECTED"
-      });
+      if (req.method === "GET") {
+        res.writeHead(503, { "Content-Type": "text/html; charset=utf-8" }).end(
+          frame(
+            '<section class="card"><h2>Je opslag is even niet bereikbaar</h2><p>Controleer of je Supabase-project actief is en de databaseconfiguratie klopt. <a href="/">Probeer opnieuw</a>.</p></section>'
+          )
+        );
+      } else if (s) {
+        s.busy = false;
+        s.message = subscriptionActionError(error62);
+        redirect();
+      } else
+        res.writeHead(400, { "Content-Type": "application/json" }).end('{"error":"REQUEST_NOT_ACCEPTED"}');
     }
   });
-  server2.headersTimeout = 1e4;
-  server2.requestTimeout = 9e4;
-  return server2;
+  server.requestTimeout = 18e4;
+  server.headersTimeout = 1e4;
+  return server;
 }
 
-// scripts/online-probe.ts
-var origin = process.env.RENDER_EXTERNAL_URL ?? process.env.PROBE_PUBLIC_ORIGIN ?? "";
-var password = process.env.PROBE_ACCESS_PASSWORD ?? "";
-var seed = process.env.PROBE_HOST_SEED ?? "";
-var port = Number(process.env.PORT ?? 1e4);
-if (seed.length < 24 || !Number.isInteger(port) || port < 1 || port > 65535)
-  throw new Error("PROBE_SETUP_REQUIRED");
-var hex3 = createHash2("sha256").update(seed).digest("hex");
-var hostId = `urn:uuid:${hex3.slice(0, 8)}-${hex3.slice(8, 12)}-4${hex3.slice(13, 16)}-a${hex3.slice(17, 20)}-${hex3.slice(20, 32)}`;
-var server = createOnlineProbeServer({ origin, password, hostId });
-server.on("error", () => {
-  process.stderr.write(
-    "Online proef kon niet starten; controleer de configuratie.\n"
-  );
-  process.exitCode = 1;
-});
-var listenHost = process.env.PROBE_LISTEN_HOST === "127.0.0.1" ? "127.0.0.1" : "0.0.0.0";
-server.listen(
-  port,
-  listenHost,
-  () => process.stdout.write("Online proef gestart. Geen credentials in logs.\n")
-);
-for (const signal of ["SIGINT", "SIGTERM"])
-  process.on(signal, () => {
-    server.close();
-    server.closeAllConnections();
+// src/server/chatgpt-connections.ts
+import { createHash as createHash2, randomBytes as randomBytes3, randomUUID } from "node:crypto";
+
+// src/server/crypto.ts
+import { createCipheriv, createDecipheriv, randomBytes as randomBytes2 } from "node:crypto";
+function key() {
+  const k = Buffer.from(process.env.APP_ENCRYPTION_KEY ?? "", "base64");
+  if (k.length !== 32) throw new Error("ENCRYPTION_KEY_REQUIRED");
+  return k;
+}
+function encrypt(text) {
+  const iv = randomBytes2(12);
+  const c = createCipheriv("aes-256-gcm", key(), iv);
+  const data = Buffer.concat([c.update(text, "utf8"), c.final()]);
+  return [iv, c.getAuthTag(), data].map((b) => b.toString("base64")).join(".");
+}
+function decrypt(value) {
+  const [iv, tag2, data] = value.split(".").map((v) => Buffer.from(v, "base64"));
+  const c = createDecipheriv("aes-256-gcm", key(), iv);
+  c.setAuthTag(tag2);
+  return Buffer.concat([c.update(data), c.final()]).toString("utf8");
+}
+
+// src/server/db.ts
+import pg from "pg";
+
+// src/server/database-url.ts
+function databaseUrl(value) {
+  try {
+    const url2 = new URL(value);
+    if (!["postgres:", "postgresql:"].includes(url2.protocol) || !url2.hostname)
+      throw new Error();
+    const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(url2.hostname);
+    if (!loopback) {
+      if (["disable", "no-verify"].includes(
+        url2.searchParams.get("sslmode") ?? ""
+      ) || url2.searchParams.get("ssl") === "false")
+        throw new Error();
+      url2.searchParams.delete("ssl");
+      url2.searchParams.set("sslmode", "verify-full");
+    }
+    return url2.toString();
+  } catch {
+    throw new Error("DATABASE_TLS_OR_URL_REQUIRED");
+  }
+}
+
+// src/server/db.ts
+var globalDb = globalThis;
+function db() {
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_NOT_CONFIGURED");
+  return globalDb.ridePool ??= new pg.Pool({
+    connectionString: databaseUrl(process.env.DATABASE_URL),
+    max: 5,
+    connectionTimeoutMillis: 1e4
   });
+}
+var athleteId = "00000000-0000-4000-8000-000000000001";
+
+// src/server/chatgpt-connections.ts
+var hash2 = (code) => createHash2("sha256").update(code).digest("hex");
+var ChatGptConnections = class {
+  constructor(sql, owner, now = () => Date.now()) {
+    this.sql = sql;
+    this.owner = owner;
+    this.now = now;
+  }
+  sql;
+  owner;
+  now;
+  async initialize() {
+    await this.sql.query(
+      "INSERT INTO chatgpt_connection(athlete_id,host_id) VALUES($1,$2) ON CONFLICT DO NOTHING",
+      [this.owner, `urn:uuid:${randomUUID()}`]
+    );
+  }
+  async recoverInterruptedRefresh() {
+    await this.sql.query(
+      "UPDATE chatgpt_connection SET state='reauth_required',credential_ciphertext=NULL,operation_started_at=NULL,error_code='REFRESH_INTERRUPTED',version=version+1,updated_at=now() WHERE athlete_id=$1 AND state='refreshing' AND operation_started_at<$2",
+      [this.owner, new Date(this.now() - 9e4)]
+    );
+  }
+  async status() {
+    await this.recoverInterruptedRefresh();
+    const { rows } = await this.sql.query(
+      "SELECT state,access_expires_at,checked_at,error_code FROM chatgpt_connection WHERE athlete_id=$1",
+      [this.owner]
+    );
+    const row = rows[0];
+    return {
+      state: row?.state ?? "disconnected",
+      accessExpiresAt: row?.access_expires_at ? new Date(row.access_expires_at).toISOString() : null,
+      checkedAt: row?.checked_at ? new Date(row.checked_at).toISOString() : null,
+      errorCode: row?.error_code ?? null
+    };
+  }
+  async createPair() {
+    await this.initialize();
+    await this.recoverInterruptedRefresh();
+    const code = randomBytes3(32).toString("base64url");
+    const expiresAt = this.now() + 5 * 6e4;
+    const { rows } = await this.sql.query(
+      "UPDATE chatgpt_connection SET pair_hash=$2,pair_expires_at=$3,version=version+1,updated_at=now() WHERE athlete_id=$1 AND state<>'refreshing' RETURNING host_id",
+      [this.owner, hash2(code), new Date(expiresAt)]
+    );
+    if (!rows.length) throw new SubscriptionError("BUSY");
+    return { code, expiresAt };
+  }
+  async pairInfo(code) {
+    if (!/^[A-Za-z0-9_-]{43}$/.test(code))
+      throw new SubscriptionError("INVALID_PAIR");
+    const { rows } = await this.sql.query(
+      "SELECT host_id,client_id,subject,pair_expires_at FROM chatgpt_connection WHERE athlete_id=$1 AND pair_hash=$2 AND pair_expires_at>$3 AND state<>'refreshing'",
+      [this.owner, hash2(code), new Date(this.now())]
+    );
+    const row = rows[0];
+    if (!row) throw new SubscriptionError("INVALID_PAIR");
+    return {
+      app: "the-ride-coach",
+      protocol: 2,
+      hostId: row.host_id,
+      expiresAt: new Date(row.pair_expires_at).getTime(),
+      ...row.client_id && row.subject ? {
+        registration: {
+          clientId: row.client_id,
+          subject: row.subject
+        }
+      } : {}
+    };
+  }
+  async consumePair(code) {
+    const info = await this.pairInfo(code);
+    const { rows } = await this.sql.query(
+      "UPDATE chatgpt_connection SET pair_hash=NULL,pair_expires_at=NULL,version=version+1 WHERE athlete_id=$1 AND pair_hash=$2 AND pair_expires_at>$3 AND state<>'refreshing' RETURNING version",
+      [this.owner, hash2(code), new Date(this.now())]
+    );
+    if (!rows.length) throw new SubscriptionError("INVALID_PAIR");
+    return { ...info, version: rows[0].version };
+  }
+  async install(credential, version2) {
+    renewableSchema.parse(credential);
+    const { rows } = await this.sql.query(
+      `UPDATE chatgpt_connection SET client_id=$3,subject=$4,credential_ciphertext=$5,state='active',version=version+1,access_expires_at=$6,operation_started_at=NULL,retry_after=NULL,error_code=NULL,checked_at=NULL,updated_at=now()
+      WHERE athlete_id=$1 AND version=$2 AND host_id=$7 AND (client_id IS NULL OR (client_id=$3 AND subject=$4)) RETURNING version`,
+      [
+        this.owner,
+        version2,
+        credential.clientId,
+        credential.subject,
+        encrypt(JSON.stringify(credential)),
+        new Date(credential.expiresAt),
+        credential.hostId
+      ]
+    );
+    if (!rows.length) throw new SubscriptionError("CONNECTION_CHANGED");
+  }
+  async load() {
+    const { rows } = await this.sql.query(
+      "SELECT state,version,credential_ciphertext,retry_after FROM chatgpt_connection WHERE athlete_id=$1",
+      [this.owner]
+    );
+    return rows[0];
+  }
+  async access(refresh = refreshCredential) {
+    await this.recoverInterruptedRefresh();
+    const row = await this.load();
+    if (!row || row.state === "disconnected")
+      throw new SubscriptionError("NOT_CONNECTED");
+    if (row.state === "reauth_required")
+      throw new SubscriptionError("REAUTH_REQUIRED");
+    if (row.state === "refreshing") throw new SubscriptionError("BUSY");
+    const old = renewableSchema.parse(
+      JSON.parse(decrypt(row.credential_ciphertext))
+    );
+    if (old.expiresAt > this.now() + 6e4)
+      return { credential: old, version: row.version };
+    if (row.retry_after && new Date(row.retry_after).getTime() > this.now())
+      throw new SubscriptionError("RETRY_LATER");
+    const { rows } = await this.sql.query(
+      "UPDATE chatgpt_connection SET state='refreshing',operation_started_at=$3,version=version+1 WHERE athlete_id=$1 AND version=$2 AND state='active' RETURNING version",
+      [this.owner, row.version, new Date(this.now())]
+    );
+    if (!rows.length) throw new SubscriptionError("BUSY");
+    const version2 = rows[0].version;
+    let next;
+    try {
+      next = await refresh(old);
+      if (next.clientId !== old.clientId || next.subject !== old.subject || next.hostId !== old.hostId)
+        throw new SubscriptionError("INVALID_IDENTITY");
+    } catch (error62) {
+      const code = error62 instanceof SubscriptionError ? error62.code : "RETRY_LATER";
+      const terminal = [
+        "REAUTH_REQUIRED",
+        "INVALID_IDENTITY",
+        "TOKEN_RESPONSE"
+      ].includes(code);
+      await this.sql.query(
+        "UPDATE chatgpt_connection SET state=$3,credential_ciphertext=CASE WHEN $4 THEN NULL ELSE credential_ciphertext END,operation_started_at=NULL,retry_after=$5,error_code=$6,version=version+1 WHERE athlete_id=$1 AND version=$2 AND state='refreshing'",
+        [
+          this.owner,
+          version2,
+          terminal ? "reauth_required" : "active",
+          terminal,
+          new Date(this.now() + 6e4),
+          code
+        ]
+      );
+      throw new SubscriptionError(code);
+    }
+    const saved = await this.sql.query(
+      "UPDATE chatgpt_connection SET credential_ciphertext=$3,state='active',access_expires_at=$4,operation_started_at=NULL,retry_after=NULL,error_code=NULL,version=version+1,updated_at=now() WHERE athlete_id=$1 AND version=$2 AND state='refreshing' RETURNING version",
+      [
+        this.owner,
+        version2,
+        encrypt(JSON.stringify(next)),
+        new Date(next.expiresAt)
+      ]
+    );
+    if (!saved.rows.length) throw new SubscriptionError("CONNECTION_CHANGED");
+    return { credential: next, version: saved.rows[0].version };
+  }
+  async claimTest() {
+    const { rows } = await this.sql.query(
+      "UPDATE chatgpt_connection SET next_test_at=$2 WHERE athlete_id=$1 AND state='active' AND next_test_at<=$3 RETURNING version",
+      [this.owner, new Date(this.now() + 6e4), new Date(this.now())]
+    );
+    if (!rows.length) throw new SubscriptionError("RETRY_LATER");
+  }
+  async finishTest(version2) {
+    const { rows } = await this.sql.query(
+      "UPDATE chatgpt_connection SET checked_at=$3,error_code=NULL WHERE athlete_id=$1 AND version=$2 AND state='active' RETURNING version",
+      [this.owner, version2, new Date(this.now())]
+    );
+    if (!rows.length) throw new SubscriptionError("CONNECTION_CHANGED");
+  }
+  async assertCurrent(version2) {
+    const { rows } = await this.sql.query(
+      "SELECT 1 FROM chatgpt_connection WHERE athlete_id=$1 AND version=$2 AND state='active'",
+      [this.owner, version2]
+    );
+    if (!rows.length) throw new SubscriptionError("CONNECTION_CHANGED");
+  }
+  async disconnect(revoke = revokeCredential) {
+    const row = await this.load();
+    const { rows } = await this.sql.query(
+      "UPDATE chatgpt_connection SET state='disconnected',credential_ciphertext=NULL,pair_hash=NULL,pair_expires_at=NULL,operation_started_at=NULL,retry_after=NULL,access_expires_at=NULL,checked_at=NULL,error_code=NULL,version=version+1 WHERE athlete_id=$1 AND version=$2 RETURNING version",
+      [this.owner, row?.version ?? -1]
+    );
+    if (!rows.length && row) throw new SubscriptionError("CONNECTION_CHANGED");
+    if (!row?.credential_ciphertext) return false;
+    try {
+      return await revoke(
+        renewableSchema.parse(JSON.parse(decrypt(row.credential_ciphertext)))
+      );
+    } catch {
+      return false;
+    }
+  }
+};
+var chatGptConnections = () => new ChatGptConnections(db(), athleteId);
+
+// src/server/online-storage-check.ts
+import { randomBytes as randomBytes4 } from "node:crypto";
+async function checkOnlineStorage(pool, owner) {
+  const marker = `ride-config-check:${randomBytes4(24).toString("hex")}`;
+  let ciphertext;
+  try {
+    ciphertext = encrypt(marker);
+    if (decrypt(ciphertext) !== marker) throw new Error();
+  } catch {
+    return { ok: false, code: "ENCRYPTION_KEY_INVALID" };
+  }
+  let client;
+  let transaction = false;
+  let cleanupFailed = false;
+  let code = "DATABASE_CONNECT_FAILED";
+  let result;
+  try {
+    client = await pool.connect();
+    code = "DATABASE_TRANSACTION_FAILED";
+    await client.query("BEGIN");
+    transaction = true;
+    await client.query("SET LOCAL statement_timeout = '10s'");
+    code = "DATABASE_SCHEMA_MISSING";
+    await client.query("SELECT id FROM audit_log LIMIT 0");
+    const stored = await client.query(
+      "SELECT credential_ciphertext FROM chatgpt_connection WHERE athlete_id=$1",
+      [owner]
+    );
+    const existing = stored.rows[0]?.credential_ciphertext;
+    const storedCredentialChecked = typeof existing === "string" && existing.length > 0;
+    if (storedCredentialChecked) {
+      code = "STORED_CREDENTIAL_KEY_MISMATCH";
+      decrypt(existing);
+    }
+    code = "DATABASE_WRITE_FAILED";
+    const written = await client.query(
+      `INSERT INTO audit_log(athlete_id,action,details)
+       VALUES($1,'configuration.storage_check',$2::jsonb) RETURNING id`,
+      [owner, JSON.stringify({ ciphertext })]
+    );
+    if (!written.rows[0]?.id) throw new Error();
+    code = "DATABASE_READBACK_FAILED";
+    const read = await client.query(
+      "SELECT details FROM audit_log WHERE id=$1 AND athlete_id=$2",
+      [written.rows[0].id, owner]
+    );
+    const received = read.rows[0]?.details?.ciphertext;
+    if (typeof received !== "string" || decrypt(received) !== marker)
+      throw new Error();
+    result = { ok: true, storedCredentialChecked };
+  } catch {
+    result = { ok: false, code };
+  } finally {
+    if (client && transaction) {
+      try {
+        await client.query("ROLLBACK");
+      } catch {
+        cleanupFailed = true;
+      }
+    }
+    if (client) {
+      try {
+        client.release(cleanupFailed);
+      } catch {
+        cleanupFailed = true;
+      }
+    }
+  }
+  return cleanupFailed ? { ok: false, code: "DATABASE_CLEANUP_FAILED" } : result;
+}
+
+// scripts/online-connect.ts
+var port = Number(process.env.PORT ?? 1e4);
+var key2 = Buffer.from(process.env.APP_ENCRYPTION_KEY ?? "", "base64");
+if (!process.env.DATABASE_URL || key2.length !== 32 || !Number.isInteger(port) || port < 1 || port > 65535) {
+  console.error(
+    "CONNECT_SETUP_REQUIRED: stel DATABASE_URL en APP_ENCRYPTION_KEY veilig in bij Render."
+  );
+  process.exit(1);
+}
+try {
+  const check2 = await checkOnlineStorage(db(), athleteId);
+  if (!check2.ok) {
+    console.error(`CONNECT_STORAGE_FAILED: ${check2.code}`);
+    await db().end();
+    process.exit(1);
+  }
+  console.log(
+    "CONNECT_STORAGE_OK: database lezen/schrijven en encryptie gecontroleerd; testrecord teruggedraaid."
+  );
+  if (check2.storedCredentialChecked)
+    console.log(
+      "CONNECT_EXISTING_KEY_OK: bestaande opgeslagen toestemming kan worden ontsleuteld."
+    );
+  const server = createOnlineConnectServer({
+    origin: process.env.RENDER_EXTERNAL_URL ?? "",
+    password: process.env.PROBE_ACCESS_PASSWORD ?? "",
+    repo: chatGptConnections()
+  });
+  server.on("error", () => {
+    console.error("CONNECT_START_FAILED");
+    process.exitCode = 1;
+  });
+  server.listen(
+    port,
+    "0.0.0.0",
+    () => console.log("Blijvende koppeling gestart. Geheimen worden niet gelogd.")
+  );
+  for (const signal of ["SIGINT", "SIGTERM"])
+    process.on(signal, () => {
+      server.close(() => {
+        void db().end();
+      });
+      server.closeAllConnections();
+    });
+} catch {
+  console.error(
+    "CONNECT_START_FAILED: controleer databaseverbinding, migrations en serverconfiguratie."
+  );
+  await db().end();
+  process.exitCode = 1;
+}
