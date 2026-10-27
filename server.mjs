@@ -21654,6 +21654,52 @@ var chatGptConnections = () => new ChatGptConnections(db(), athleteId);
 
 // src/server/online-storage-check.ts
 import { randomBytes as randomBytes4 } from "node:crypto";
+function connectDiagnosis(error62, depth = 0) {
+  if (depth > 2 || !error62 || typeof error62 !== "object") return "UNKNOWN";
+  try {
+    const value = error62;
+    const message2 = typeof value.message === "string" ? value.message.slice(0, 4096) : "";
+    if (/tenant or user not found|tenant\/user .{0,300} not found/i.test(message2))
+      return "POOLER_TENANT_NOT_FOUND";
+    if (/circuit breaker open/i.test(message2)) return "POOLER_AUTH_BLOCKED";
+    const codes = {
+      "28P01": "AUTHENTICATION_REJECTED",
+      "28000": "AUTHENTICATION_REJECTED",
+      "3D000": "DATABASE_NAME_INVALID",
+      "53300": "CONNECTION_LIMIT_REACHED",
+      "57P03": "DATABASE_STARTING",
+      ENOTFOUND: "DNS_LOOKUP_FAILED",
+      EAI_AGAIN: "DNS_LOOKUP_FAILED",
+      ENETUNREACH: "NETWORK_UNREACHABLE",
+      EHOSTUNREACH: "NETWORK_UNREACHABLE",
+      ETIMEDOUT: "NETWORK_TIMEOUT",
+      ECONNREFUSED: "CONNECTION_REFUSED",
+      SELF_SIGNED_CERT_IN_CHAIN: "TLS_CERTIFICATE_UNTRUSTED",
+      DEPTH_ZERO_SELF_SIGNED_CERT: "TLS_CERTIFICATE_UNTRUSTED",
+      UNABLE_TO_VERIFY_LEAF_SIGNATURE: "TLS_CERTIFICATE_UNTRUSTED",
+      UNABLE_TO_GET_ISSUER_CERT_LOCALLY: "TLS_CERTIFICATE_UNTRUSTED",
+      ERR_TLS_CERT_ALTNAME_INVALID: "TLS_HOSTNAME_MISMATCH",
+      CERT_HAS_EXPIRED: "TLS_CERTIFICATE_EXPIRED"
+    };
+    if (typeof value.code === "string" && Object.hasOwn(codes, value.code))
+      return codes[value.code];
+    if (/password authentication failed/i.test(message2))
+      return "AUTHENTICATION_REJECTED";
+    if (/connection terminated due to connection timeout|timeout exceeded when trying to connect/i.test(
+      message2
+    ))
+      return "NETWORK_TIMEOUT";
+    if (Array.isArray(value.errors)) {
+      for (const child of value.errors.slice(0, 4)) {
+        const result = connectDiagnosis(child, depth + 1);
+        if (result !== "UNKNOWN") return result;
+      }
+    }
+    return connectDiagnosis(value.cause, depth + 1);
+  } catch {
+    return "UNKNOWN";
+  }
+}
 async function checkOnlineStorage(pool, owner) {
   const marker = `ride-config-check:${randomBytes4(24).toString("hex")}`;
   let ciphertext;
@@ -21702,8 +21748,9 @@ async function checkOnlineStorage(pool, owner) {
     if (typeof received !== "string" || decrypt(received) !== marker)
       throw new Error();
     result = { ok: true, storedCredentialChecked };
-  } catch {
-    result = { ok: false, code };
+  } catch (error62) {
+    const diagnosis = code === "DATABASE_CONNECT_FAILED" ? connectDiagnosis(error62) : "UNKNOWN";
+    result = diagnosis === "UNKNOWN" ? { ok: false, code } : { ok: false, code, diagnosis };
   } finally {
     if (client && transaction) {
       try {
@@ -21736,6 +21783,8 @@ try {
   const check2 = await checkOnlineStorage(db(), athleteId);
   if (!check2.ok) {
     console.error(`CONNECT_STORAGE_FAILED: ${check2.code}`);
+    if (check2.code === "DATABASE_CONNECT_FAILED")
+      console.error(`CONNECT_STORAGE_DETAIL: ${check2.diagnosis ?? "UNKNOWN"}`);
     await db().end();
     process.exit(1);
   }
